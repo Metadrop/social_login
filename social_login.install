@@ -8,9 +8,9 @@
 /**
  * Implements hook_schema().
  */
-function social_login_core_schema() {
+function social_login_schema() {
 
-  // Used to link social network profiles to authmap entries.
+  // Used to link social network profiles to now internal authmap entries.
   $schema['oneall_social_login_identities'] = array(
     'description' => 'Used to link social network profiles to authmap entries.',
     'fields' => array(
@@ -49,7 +49,7 @@ function social_login_core_schema() {
     ),
     'foreign keys' => array(
       'aid' => array(
-        'table' => 'authmap',
+        'table' => 'oneall_social_authmap',
         'columns' => array(
           'aid' => 'aid',
         ),
@@ -57,6 +57,34 @@ function social_login_core_schema() {
     ),
     'primary key' => array(
       'oasliid',
+    ),
+  );
+  
+  // new authmap entries (authmap removed in D8).
+  $schema['oneall_social_login_authmap'] = array(
+    'description' => 'D7 equivalent authmap entries.',
+    'fields' => array(
+      'aid' => array(
+        'description' => 'The primary key of this table.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'User id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'user_token' => array(
+        'description' => 'Unique user_token for a social network user, returned by the OneAll API.',
+        'type' => 'varchar',
+        'length' => 48,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'aid',
     ),
   );
 
@@ -99,7 +127,7 @@ function social_login_core_schema() {
 /**
  * Implements hook_install().
  */
-function social_login_core_install() {
+function social_login_install() {
 
   // Start transaction.
   $db_transaction = db_transaction();
@@ -107,6 +135,7 @@ function social_login_core_install() {
   // Install.
   try {
     drupal_install_schema('oneall_social_login_identities');
+    drupal_install_schema('oneall_social_login_authmap');
     drupal_install_schema('oneall_social_login_settings');
   }
   catch (Exception $e) {
@@ -117,12 +146,10 @@ function social_login_core_install() {
 /**
  * Implements hook_uninstall().
  */
-function social_login_core_uninstall() {
+function social_login_uninstall() {
 
   // Drop tables.
   drupal_uninstall_schema('oneall_social_login_identities');
+  drupal_uninstall_schema('oneall_social_login_authmap');
   drupal_uninstall_schema('oneall_social_login_settings');
-
-  // Remove entries that the module might have created.
-  db_delete('authmap')->condition('module', 'oneall_social_login')->execute();
 }

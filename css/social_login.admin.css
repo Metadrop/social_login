@@ -7,7 +7,7 @@ div.messages.social_login {
 }
 
 .social_login_provider {
-  background-image: url("img/social_login.providers.png");
+  background-image: url("../img/social_login.providers.png");
   display: inline-block;
   height: 35px;
   text-indent: -9999px;
@@ -56,6 +56,10 @@ div.messages.social_login {
 
 .social_login_provider.social_login_provider_openid {
   background-position: -409px -1px;
+}
+
+.social_login_provider.social_login_provider_draugiem {
+	background-position: -446px -1px;
 }
 
 .social_login_provider.social_login_provider_twitter {
@@ -124,4 +128,24 @@ div.messages.social_login {
 
 .social_login_provider.social_login_provider_instagram {
   background-position: -1186px -1px;
+}
+
+.social_login_provider.social_login_provider_battlenet {
+	background-position: -1223px -1px;
+}
+
+.social_login_provider.social_login_provider_dribble {
+	background-position: -1260px -1px;
+}
+
+.social_login_provider.social_login_provider_pinterest {
+	background-position: -1297px -1px;
+}
+
+.social_login_provider.social_login_provider_pixelpin {
+	background-position: -1334px -1px;
+}
+
+.social_login_provider.social_login_provider_storage {
+	background-position: -1371px -1px;
 }
