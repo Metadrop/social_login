@@ -337,7 +337,7 @@ class SocialLoginCore extends ControllerBase
 											return new RedirectResponse(\Drupal::url('user.login'));
 										}
 									}
-									// An error occured during user_save().
+									// An error occured during user->save().
 									else {
 										// Redirect to registration page (register manually).
 										drupal_set_message(t('Error while creating your user account, please try to register manually.'), 'error');

@@ -688,7 +688,7 @@ function social_login_link_social_network_avatar($social_data, $account) {
 
 			// Picture source and target.
 			$picture_url = $user_data['identity']['pictureUrl'];
-			// $picture_directory = file_default_scheme() . '://' . variable_get('user_picture_path', 'pictures');
+			
 			$field = \Drupal\field\Entity\FieldConfig::loadByName('user', 'user', 'user_picture');
 			$token_service = \Drupal::service('token');
 			$file_dir = $token_service->replace($field->getSetting('file_directory'));
