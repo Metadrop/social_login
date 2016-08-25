@@ -156,7 +156,7 @@ class SocialLoginCore extends ControllerBase
 
 										// Redirect to profile.
 										\Drupal::logger('social_login')->notice('- '. __FUNCTION__ .'@'. __LINE__ .' redirecting to '. \Drupal::url('user.page'));
-										return new RedirectResponse(\Drupal::url('user.page', [], ));
+										return new RedirectResponse(\Drupal::url('user.page'));
 									}
 								}
 								// User is not logged in.
