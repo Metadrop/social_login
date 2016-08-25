@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\social_login\Form\SocialLoginAdminSettings.
- */
-
 namespace Drupal\social_login\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
@@ -265,7 +260,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
 		$form['social_login_settings_profile_page']['profile_page_caption'] = [
 		'#type' => 'textfield',
 		'#title' => t('Social Login Icons: Caption [Leave empty for none]'),
-		'#default_value' => (!isset($settings['profile_page_caption']) ? t('Link your account to a social network:') : $settings['profile_page_caption']),
+		'#default_value' => (!isset($settings['profile_page_caption']) ? t('Link your account to a social network') : $settings['profile_page_caption']),
 		'#size' => 60,
 		'#maxlength' => 60,
 		'#description' => t('This is the title displayed above the social network icons.'),

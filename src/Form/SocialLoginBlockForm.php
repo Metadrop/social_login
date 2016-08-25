@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\social_login\Form\SocialLoginBlockForm.
- */
 
 namespace Drupal\social_login\Form;
 
