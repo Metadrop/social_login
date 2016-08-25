@@ -79,7 +79,7 @@ class SocialLoginCore extends ControllerBase
 					// Everything seems to be ok.
 					if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['request']['status']['code']) && $social_data['response']['request']['status']['code'] == 200) {
 
-						// The plugin that has been uses social_login/social_link.
+						// Retrieve the social network profile data.
 						$data = $social_data['response']['result']['data'];
 
 						// Save the social network data in a session.
@@ -106,11 +106,12 @@ class SocialLoginCore extends ControllerBase
 						// Existing user.
 						if (is_object($user_for_token) && !empty($user_for_token->id())) {
 							
-							// Social Login Plugin used?
+							// Social Login  
 							if ($data['plugin']['key'] == 'social_login') {
 								// Make sure that the user has not been blocked.
 								$name = $user_for_token->get('name')->value;
-								// $user_for_token->getAccountName();
+							
+								// Not blocked.
 								if (!user_is_blocked($name)) {
 									user_login_finalize($user_for_token);
 								} 
@@ -120,7 +121,7 @@ class SocialLoginCore extends ControllerBase
 									\social_login_clear_session();
 								}
 							}
-							// Social Link Plugin used?
+							// Social Link
 							elseif ($data['plugin']['key'] == 'social_link') {
 
 								// The user should be logged in.
@@ -155,7 +156,7 @@ class SocialLoginCore extends ControllerBase
 
 										// Redirect to profile.
 										\Drupal::logger('social_login')->notice('- '. __FUNCTION__ .'@'. __LINE__ .' redirecting to '. \Drupal::url('user.page'));
-										return new RedirectResponse(\Drupal::url('user.page'));
+										return new RedirectResponse(\Drupal::url('user.page', [], ));
 									}
 								}
 								// User is not logged in.
@@ -168,6 +169,45 @@ class SocialLoginCore extends ControllerBase
 									// Redirect to home.
 									return new RedirectResponse(\Drupal::url('<front>'));
 								}
+							}
+						}
+						// Not an existing Social Login user, maybe another user linking their account:
+						elseif ($data['plugin']['key'] == 'social_link') {
+
+							// The user should be logged in.
+							$user = \Drupal::currentUser();
+
+							// User is logged in.
+							if (is_object($user) && $user->isAuthenticated()) {
+								// Link identity.
+								if ($data['plugin']['data']['action'] == 'link_identity') {
+									\social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
+									drupal_set_message(t('The @social_network account has been linked to your account.', array(
+										'@social_network' => $provider_name,
+									)), 'status');
+								}
+								// Unlink identity.
+								else {
+									\social_login_unmap_identity_token($identity_token);
+									drupal_set_message(t('The social network account has been unlinked from your account.'), 'status');
+								}
+
+								// Clear session.
+								\social_login_clear_session();
+
+								// Redirect to profile.
+								\Drupal::logger('social_login')->notice('- '. __FUNCTION__ .'@'. __LINE__ .' redirecting to '. \Drupal::url('user.page'));
+								return new RedirectResponse(\Drupal::url('user.page'));
+							}
+							// User is not logged in.
+							else {
+								drupal_set_message(t('You must be logged in to perform this action.'), 'error');
+
+								// Clear session.
+								\social_login_clear_session();
+
+								// Redirect to home.
+								return new RedirectResponse(\Drupal::url('<front>'));
 							}
 						}
 						// New user.
@@ -310,7 +350,7 @@ class SocialLoginCore extends ControllerBase
 												// No approval required.
 												if ($user_status == 1) {
 													_user_mail_notify('register_no_approval_required', $user);
-													drupal_set_message(t('You have succesfully created an account and linked it with your @social_network account.', array(
+													drupal_set_message(t('You have successfully created an account and linked it with your @social_network account.', array(
 															'@social_network' => $provider_name,
 													)), 'status');
 												}
@@ -324,7 +364,7 @@ class SocialLoginCore extends ControllerBase
 											}
 											// Random email used.
 											else {
-												drupal_set_message(t('You have succesfully created an account and linked it with your @social_network account.', array(
+												drupal_set_message(t('You have successfully created an account and linked it with your @social_network account.', array(
 														'@social_network' => $provider_name,
 												)), 'status');
 											}
@@ -337,7 +377,7 @@ class SocialLoginCore extends ControllerBase
 											return new RedirectResponse(\Drupal::url('user.login'));
 										}
 									}
-									// An error occured during user->save().
+									// An error occured during user_save().
 									else {
 										// Redirect to registration page (register manually).
 										drupal_set_message(t('Error while creating your user account, please try to register manually.'), 'error');
