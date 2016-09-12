@@ -1,5 +1,6 @@
 Module:  OneAll Social Login
-Authors: Claude Schlesser <cschlesser@oneall.com>, Frederic Pinel <fpinel@oneall.com>
+Authors: Claude Schlesser <cschlesser@oneall.com>
+Authors: Frederic Pinel <fpinel@oneall.com>
 
 Description
 ===========
