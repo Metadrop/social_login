@@ -63,9 +63,9 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     $form['social_login_api_connection']['http_handler'] = [
       '#type' => 'select',
       '#title' => t('API Communication Handler'),
-      '#description' => t('Either <a href="@link_curl" target="_blank">PHP cURL</a> or the <a href="@link_fsockopen" target="_blank">Drupal Guzzle client</a> must be available on your server.', [
+      '#description' => t('Either <a href="@link_curl" target="_blank">PHP cURL</a> or the <a href="@link_guzzle" target="_blank">Drupal Guzzle client</a> must be available on your server.', [
         '@link_curl' => 'http://www.php.net/manual/en/book.curl.php',
-        '@link_fsockopen' => 'http://docs.guzzlephp.org/en/latest/',
+        '@link_guzzle' => 'http://docs.guzzlephp.org/en/latest/',
       ]),
       '#options' => [
         'curl' => t('PHP cURL library'),

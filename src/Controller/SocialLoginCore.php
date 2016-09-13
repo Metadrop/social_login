@@ -62,7 +62,7 @@ class SocialLoginCore extends ControllerBase {
       // Settings missing.
       if (empty($api_subdomain) || empty($api_key) || empty($api_secret)) {
         drupal_set_message(t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'), 'error');
-        \Drupal::logger('social_login')->notice('The API Settings are not filled out correctly', array());
+        \Drupal::logger('social_login')->error('Unable to usge Social Login, the API Settings are not filled out correctly.');
       }
       // Settings filled out.
       else {
@@ -107,7 +107,7 @@ class SocialLoginCore extends ControllerBase {
             // Existing user.
             if (is_object($user_for_token) && !empty($user_for_token->id())) {
 
-              // Existing User: Social Login.
+              // Existing User Token: Social Login.
               if ($data['plugin']['key'] == 'social_login') {
 
                 // Make sure that the user has not been blocked.
@@ -124,10 +124,10 @@ class SocialLoginCore extends ControllerBase {
                   social_login_clear_session();
                 }
               }
-              // Existing User: Social Link.
+              // Existing User Token: Social Link.
               elseif ($data['plugin']['key'] == 'social_link') {
 
-                // The user should be logged in.
+                // The user must be logged in.
                 $user = \Drupal::currentUser();
 
                 // User is logged in.
@@ -147,20 +147,41 @@ class SocialLoginCore extends ControllerBase {
                       drupal_set_message(t('The @social_network account has been linked to your account.', array(
                         '@social_network' => $provider_name,
                       )), 'status');
+
+                      // Add log.
+                      \Drupal::logger('social_login')->notice('@name has linked his @provider account (@identity_token).', array(
+                        '@name' => $user->getAccountName(),
+                        '@provider' => $provider_name,
+                        '@identity_token' => $identity_token,
+                      ));
                     }
                     // Unlink identity.
                     else {
                       social_login_unmap_identity_token($identity_token);
                       drupal_set_message(t('The social network account has been unlinked from your account.'), 'status');
+
+                      // Add log.
+                      \Drupal::logger('social_login')->notice('@name has unlinked a social network account (@identity_token).', array(
+                        '@name' => $user->getAccountName(),
+                        '@identity_token' => $identity_token,
+                      ));
                     }
 
                     // Clear session.
                     social_login_clear_session();
-
-                    // Redirect to profile.
-                    \Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' redirecting to ' . \Drupal::url('user.page'));
-                    return new RedirectResponse(\Drupal::url('user.page'));
                   }
+
+                  // Redirect to previous page.
+                  if (!empty($_GET['origin'])) {
+                    $redirect_to = $_GET['origin'];
+                  }
+                  // Redirect to profile page.
+                  else {
+                    $redirect_to = \Drupal::url('user.page');
+                  }
+
+                  // Redirect.
+                  return new RedirectResponse($redirect_to);
                 }
                 // User is not logged in.
                 else {
@@ -176,16 +197,15 @@ class SocialLoginCore extends ControllerBase {
             }
             // New User.
             else {
-              // No Existing User: Social Link.
+              // No Existing User Token: Social Link.
               if ($data['plugin']['key'] == 'social_link') {
-
-                \Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' New User, Social Link');
 
                 // The user should be logged in.
                 $user = \Drupal::currentUser();
 
                 // User is logged in.
                 if (is_object($user) && $user->isAuthenticated()) {
+
                   // Link identity.
                   if ($data['plugin']['data']['action'] == 'link_identity') {
                     social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
@@ -202,9 +222,17 @@ class SocialLoginCore extends ControllerBase {
                   // Clear session.
                   social_login_clear_session();
 
-                  // Redirect to profile.
-                  \Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' redirecting to ' . \Drupal::url('user.page'));
-                  return new RedirectResponse(\Drupal::url('user.page'));
+                  // Redirect to previous page.
+                  if (!empty($_GET['origin'])) {
+                    $redirect_to = $_GET['origin'];
+                  }
+                  // Redirect to profile page.
+                  else {
+                    $redirect_to = \Drupal::url('user.page');
+                  }
+
+                  // Redirect.
+                  return new RedirectResponse($redirect_to);
                 }
                 // User is not logged in.
                 else {
@@ -219,8 +247,6 @@ class SocialLoginCore extends ControllerBase {
               }
               // No Existing User: Social Login (Default)
               else {
-
-                \Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' New User, Social Login');
 
                 // New users may register.
                 if (\Drupal::config('user.settings')->get('register') != USER_REGISTER_ADMINISTRATORS_ONLY) {
@@ -344,6 +370,13 @@ class SocialLoginCore extends ControllerBase {
                     // The new account has been created correctly.
                     if ($account !== FALSE) {
 
+                      // Add log.
+                      \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', array(
+                        '@name' => $user_login,
+                        '@provider' => $provider_name,
+                        '@identity_token' => $identity_token,
+                      ));
+
                       // Disable Drupal legacy registration.
                       $registration_method = 'auto';
 
@@ -384,7 +417,7 @@ class SocialLoginCore extends ControllerBase {
                       else {
                         // Redirect to login page (login manually).
                         drupal_set_message(t('Error while logging you in, please try to login manually.'), 'error');
-                        \Drupal::logger('social_login')->error('- ' . __FUNCTION__ . '@' . __LINE__ . ' auto login, redirecting to ' . \Drupal::url('user.login'));
+                        \Drupal::logger('social_login')->error('Unable to automatically login in the user.');
                         return new RedirectResponse(\Drupal::url('user.login'));
                       }
                     }
@@ -392,7 +425,7 @@ class SocialLoginCore extends ControllerBase {
                     else {
                       // Redirect to registration page (register manually).
                       drupal_set_message(t('Error while creating your user account, please try to register manually.'), 'error');
-                      \Drupal::logger('social_login')->error('- ' . __FUNCTION__ . '@' . __LINE__ . ' auto register, redirecting to ' . \Drupal::url('user.register'));
+                      \Drupal::logger('social_login')->error('Unable to automatically register the new user.');
                       return new RedirectResponse(\Drupal::url('user.register'));
                     }
                   }
@@ -400,7 +433,6 @@ class SocialLoginCore extends ControllerBase {
                   // Use the legacy registration form?
                   if ($registration_method == 'manual') {
                     // Go to the registration page (+ prepopulate form).
-                    \Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' manual register, redirecting to ' . \Drupal::url('user.register'));
                     return new RedirectResponse(\Drupal::url('user.register'));
                   }
                 }
@@ -414,7 +446,7 @@ class SocialLoginCore extends ControllerBase {
           }
         }
         else {
-          \Drupal::logger('social_login')->error('- ' . __FUNCTION__ . '@' . __LINE__ . ' invalid JSON received from resource');
+          \Drupal::logger('social_login')->error('Invalid JSON received from OneAll API.');
         }
       }
     }

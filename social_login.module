@@ -297,25 +297,28 @@ function social_login_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Adds the Javascript asynchronous library.
+ * Adds the Oneall asynchronous Javascript library.
  */
 function social_login_add_js_plugin(&$form, $subdomain) {
   if (!empty($subdomain)) {
-    // Add library:
-    $js = [];
-    $js[] = "<!-- OneAll.com for Drupal 8.0.x -->";
-    $js[] = "var oa = document.createElement('script');";
-    $js[] = "oa.type = 'text/javascript'; oa.async = true;";
-    $js[] = "oa.src = '//" . $subdomain . ".api.oneall.com/socialize/library.js';";
-    $js[] = "var s = document.getElementsByTagName('script')[0];";
-    $js[] = "s.parentNode.insertBefore(oa, s);";
+
+    // Build code.
+    $js = array();
+    $js[] = "(function() {";
+    $js[] = " var oa=document.createElement('script'); oa.type='text/javascript';";
+    $js[] = " oa.async=true; oa.src='//" . $subdomain . ".api.oneall.com/socialize/library.js';";
+    $js[] = " var os=document.getElementsByTagName('script')[0]; os.parentNode.insertBefore(oa, os);";
+    $js[] = "})();";
     $js = implode(PHP_EOL, $js);
 
-    // Attach to page:
+    // Add to page.
     $form['#attached']['html_head'][] = array(
       array(
         '#tag' => 'script',
         '#value' => $js,
+        '#attributes' => array(
+          'type' => 'text/javascript',
+        ),
       ),
       'social_login',
     );
@@ -441,7 +444,7 @@ function social_login_user_login($account) {
       }
     }
     else {
-      Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' invalid JSON received from resource');
+      \Drupal::logger('social_login')->error('Invalid JSON received from OneAll API.');
     }
 
     // Restore to origin.
@@ -452,7 +455,6 @@ function social_login_user_login($account) {
 
     // Redirect to origin.
     if (strlen(trim($origin)) > 0) {
-      Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' redirecting to ' . $origin);
       $response = new RedirectResponse($origin);
       $response->send();
       return;
@@ -555,7 +557,9 @@ function social_login_check_fsockopen($protocol = 'https') {
  * Sends an API request by using the given handler.
  */
 function social_login_do_api_request($handler, $url, $options = array(), $timeout = 30) {
-  $user_agent_string = 'SocialLogin/1.1 Drupal/8.x (+http://www.oneall.com/)';
+
+  $user_agent_string = 'SocialLogin/1.2 Drupal/8.x (+http://www.oneall.com/)';
+
   $http_code = 'n/a';
   $http_data = NULL;
   // GUZZLE?
@@ -705,7 +709,9 @@ function social_login_link_social_network_avatar($social_data, $account) {
         $tmp_file = file_save_data($http_result['http_data'], $tmp_path, FILE_EXISTS_REPLACE);
 
         if ($tmp_file === FALSE) {
-          Drupal::logger('social_login')->error('- ' . __FUNCTION__ . '@' . __LINE__ . ' saving: ' . $tmp_path);
+          Drupal::logger('social_login')->error('Could not save user avatar to @path', array(
+            '@path' => $tmp_path,
+          ));
           return;
         }
 
@@ -759,7 +765,9 @@ function social_login_link_social_network_avatar($social_data, $account) {
           }
           else {
             foreach ($errors as $e) {
-              Drupal::logger('social_login')->error('- ' . __FUNCTION__ . '@' . __LINE__ . ' image validation: ' . $e);
+              Drupal::logger('social_login')->error('Image validation error: @description', array(
+                '@description' => $e,
+              ));
             }
             $real_file->delete();
           }
@@ -831,13 +839,9 @@ function social_login_get_user_for_user_token($user_token) {
   if (($uid = social_login_get_uid_for_user_token($user_token)) === FALSE) {
     return FALSE;
   }
-  $user_entity = Drupal::entityManager()->getStorage('user');
-  // $user_entity->resetCache(array($uid));
-  $user = $user_entity->load($uid);
-  if (is_null($user)) {
-    return FALSE;
-  }
-  return $user;
+
+  $user = Drupal::entityManager()->getStorage('user')->load($uid);
+  return (empty($user) ? FALSE : $user);
 }
 
 /**
@@ -916,7 +920,7 @@ function social_login_get_settings() {
 function social_login_preprocess_page(&$vars, $hook) {
   if (is_array($vars['page']) && isset($vars['page']) && isset($vars['page']['footer'])) {
     if (isset($vars['page']['footer']['system_powered-by']) && isset($vars['page']['footer']['system_powered-by']['#markup'])) {
-      $vars['page']['footer']['system_powered-by']['#markup'] .= '&nbsp; | &nbsp;' . Drupal::l(t('Social Login'), Url::fromUri('http://www.oneall.com/services/')) . ' ' . t('powered by') . ' ' . Drupal::l(t('OneAll'), Url::fromUri('http://www.oneall.com/'));
+      $vars['page']['footer']['system_powered-by']['#markup'] .= '&nbsp; | &nbsp;' . Drupal::l(t('Social Login'), Url::fromUri('http://www.oneall.com/services/social-login/')) . ' ' . t('powered by') . ' ' . Drupal::l(t('OneAll'), Url::fromUri('http://www.oneall.com/'));
     }
   }
 }
@@ -1015,6 +1019,9 @@ function social_login_get_available_providers() {
     ),
     'wordpress' => array(
       'name' => 'WordPress.com',
+    ),
+    'xing' => array(
+      'name' => 'XING',
     ),
     'yahoo' => array(
       'name' => 'Yahoo',
