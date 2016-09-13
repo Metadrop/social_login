@@ -271,7 +271,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
       '#title' => t('Retrieve the user picture from the social network when a user registers with Social Login?'),
       '#description' => t('Social Login grabs the user picture from the social network, saves it locally and uses it as avatar for the new account.'),
       '#options' => array(
-        'enable' => t('Yes, retrieve the user picture from the social network an use it as avatar for the user (Default)'),
+        'enable' => t('Yes, retrieve the user picture from the social network and use it as avatar for the user (Default)'),
         'disable' => t('No, do not retrieve the user picture from the social network'),
       ),
       '#default_value' => (empty($settings['registration_retrieve_avatars']) ? 'enable' : $settings['registration_retrieve_avatars']),

@@ -78,6 +78,5 @@ networks and identity providers:
 - VKontakte
 - Windows Live
 - WordPress.com
-- XING
 - Yahoo
 - YouTube

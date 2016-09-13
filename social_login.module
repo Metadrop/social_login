@@ -388,6 +388,13 @@ function social_login_user_insert($account) {
             break;
         }
       }
+      
+      // Add log.
+      \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', array(
+        '@name' => $account->getAccountName(),
+        '@provider' => $provider_name,
+        '@identity_token' => $identity_token,
+      ));
     }
 
     // Clear the session.
@@ -1019,9 +1026,6 @@ function social_login_get_available_providers() {
     ),
     'wordpress' => array(
       'name' => 'WordPress.com',
-    ),
-    'xing' => array(
-      'name' => 'XING',
     ),
     'yahoo' => array(
       'name' => 'Yahoo',

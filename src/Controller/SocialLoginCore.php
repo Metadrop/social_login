@@ -149,7 +149,7 @@ class SocialLoginCore extends ControllerBase {
                       )), 'status');
 
                       // Add log.
-                      \Drupal::logger('social_login')->notice('@name has linked his @provider account (@identity_token).', array(
+                      \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', array(
                         '@name' => $user->getAccountName(),
                         '@provider' => $provider_name,
                         '@identity_token' => $identity_token,
@@ -161,7 +161,7 @@ class SocialLoginCore extends ControllerBase {
                       drupal_set_message(t('The social network account has been unlinked from your account.'), 'status');
 
                       // Add log.
-                      \Drupal::logger('social_login')->notice('@name has unlinked a social network account (@identity_token).', array(
+                      \Drupal::logger('social_login')->notice('@name has unlinked a social network account, identity @identity_token.', array(
                         '@name' => $user->getAccountName(),
                         '@identity_token' => $identity_token,
                       ));
@@ -212,6 +212,13 @@ class SocialLoginCore extends ControllerBase {
                     drupal_set_message(t('The @social_network account has been linked to your account.', array(
                       '@social_network' => $provider_name,
                     )), 'status');
+                    
+                    // Add log.
+                    \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', array(
+                      '@name' => $user->getAccountName(),
+                      '@provider' => $provider_name,
+                      '@identity_token' => $identity_token,
+                    ));
                   }
                   // Unlink identity.
                   else {
