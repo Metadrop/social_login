@@ -17,6 +17,13 @@ use Drupal\Core\Session\AccountInterface;
 class SocialLoginBlock extends BlockBase {
 
   /**
+   * Disables the cache for this block.
+   */
+  public function getCacheMaxAge() {
+    return 0;
+  }
+
+  /**
    * Indicates whether the block should be shown.
    */
   public function blockAccess(AccountInterface $account) {

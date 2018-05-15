@@ -47,13 +47,16 @@ class SocialLoginBlockForm extends FormBase
         // Read Settings.
         $settings = \social_login_get_settings();
 
-        $title = $settings['login_page_caption'];
-
+        // Container.
         $containerid = 'social_login_providers_' . rand(99999, 9999999);
 
+        // Add library.
         social_login_add_js_plugin($form, $settings['api_subdomain']);
 
+        // Get the current url.
         $current_uri = \social_login_get_current_url($is_https);
+
+        // Build callback url.
         $callback_uri = Url::fromRoute('social_login.core', [], array(
             'absolute' => true,
             'query' => array(
@@ -61,15 +64,14 @@ class SocialLoginBlockForm extends FormBase
             )
         ))->toString();
 
-        $provider_string = "\"" . implode("\",\"", $settings['enabled_providers']) . "\"";
-
-        $form['social_login_' . $containerid] = array(
-            '#label' => $title,
-            '#weight' => 0,
+        // Social login form.
+        $form['social_login'] = array(
             '#theme' => 'provider_container',
+            '#label' => $settings['login_page_caption'],
+            '#weight' => 0,
             '#containerid' => $containerid,
             '#plugintype' => 'social_login',
-            '#providers' => $provider_string,
+            '#providers' => $settings['enabled_providers'],
             '#token' => '',
             '#callbackuri' => $callback_uri,
             // The cache tag is the callback uri (redirect to the same page).
@@ -80,9 +82,11 @@ class SocialLoginBlockForm extends FormBase
             )
         );
 
+        // Prevent caching.
         $renderer = \Drupal::service('renderer');
         $renderer->addCacheableDependency($form, $callback_uri);
 
+        // Done.
         return $form;
     }
 }

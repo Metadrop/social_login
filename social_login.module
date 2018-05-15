@@ -160,7 +160,7 @@ function social_login_show_providers(&$form, $form_state, $target) {
       $plugin_type = 'social_login';
 
       // Do not show if disabled by admin.
-      if (isset($settings['side_panel_icons']) and $settings['side_panel_icons'] != 'disable') {
+      if ($settings['side_panel_icons'] != 'disable') {
         $widget_enabled = TRUE;
         $title = $settings['side_panel_caption'];
         $position = ($settings['side_panel_icons'] == 'below' ? 100 : (-100));
@@ -244,8 +244,6 @@ function social_login_show_providers(&$form, $form_state, $target) {
       )
     ))->toString();
 
-    $provider_string = "\"" . implode("\",\"", $settings['enabled_providers']) . "\"";
-
     // Show in fieldset.
     if ($widget_in_fieldset) {
       $form['social_login_' . $containerid] = array(
@@ -259,9 +257,12 @@ function social_login_show_providers(&$form, $form_state, $target) {
         '#theme' => 'provider_container',
         '#containerid' => $containerid,
         '#plugintype' => $plugin_type,
-        '#providers' => $provider_string,
+        '#providers' => $settings['enabled_providers'],
         '#token' => $token,
-        '#callbackuri' => $callback_uri
+        '#callbackuri' => $callback_uri,
+        '#cache' => array(
+           'max-age' => 0
+        )
       );
     }
     else {
@@ -271,9 +272,12 @@ function social_login_show_providers(&$form, $form_state, $target) {
         '#theme' => 'provider_container',
         '#containerid' => $containerid,
         '#plugintype' => $plugin_type,
-        '#providers' => $provider_string,
+        '#providers' => $settings['enabled_providers'],
         '#token' => $token,
-        '#callbackuri' => $callback_uri
+        '#callbackuri' => $callback_uri,
+        '#cache' => array(
+           'max-age' => 0
+        )
       );
     }
   }
@@ -289,9 +293,12 @@ function social_login_theme($existing, $type, $theme, $path) {
         'containerid' => NULL,
         'label' => NULL,
         'plugintype' => NULL,
-        'providers' => NULL,
+        'providers' => array(),
         'token' => NULL,
-        'callbackuri' => NULL
+        'callbackuri' => NULL,
+        'cache' => array(
+          'max-age' => 0
+        )
       )
     )
   );
@@ -409,64 +416,92 @@ function social_login_user_insert($account) {
 function social_login_user_login($account) {
 
   // Check if we come from a valid session.
-  if (isset($_SESSION) && !empty($_SESSION['social_login_session_open']) && !empty($_SESSION['social_login_social_data'])) {
+  if (isset($_SESSION))
+  {
+      if (!empty($_SESSION['social_login_session_open']) && !empty($_SESSION['social_login_social_data'])) {
 
-    // Restore data.
-    $social_data = @unserialize($_SESSION['social_login_social_data']);
+        // Restore data.
+        $social_data = @unserialize($_SESSION['social_login_social_data']);
 
-    // Check format.
-    if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['request']['status']['code']) && $social_data['response']['request']['status']['code'] == 200 && isset($social_data['response']['result']['data']['user'])) {
+        // Check format.
+        if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['request']['status']['code']) && $social_data['response']['request']['status']['code'] == 200 && isset($social_data['response']['result']['data']['user'])) {
 
-      // Retrieve required data.
-      $user_data = $social_data['response']['result']['data']['user'];
+          // Redirection.
+          $redirect_to = (isset ($_SESSION['social_login_origin']) ? $_SESSION['social_login_origin'] : '');
 
-      // Unique user_token.
-      $user_token = $user_data['user_token'];
+          // Read Settings.
+          $settings = social_login_get_settings();
 
-      // Unique identity_token.
-      $identity_token = $user_data['identity']['identity_token'];
+          // Retrieve required data.
+          $user_data = $social_data['response']['result']['data']['user'];
 
-      // Social Network used to connect.
-      $provider_name = $user_data['identity']['source']['name'];
+          // Unique user_token.
+          $user_token = $user_data['user_token'];
 
-      // Check if token is already linked.
-      $uid = social_login_get_uid_for_user_token($user_token);
+          // Unique identity_token.
+          $identity_token = $user_data['identity']['identity_token'];
 
-      // Already linked.
-      if ($uid !== FALSE) {
-        // Linked to a different user?
-        if ($account->id() != $uid) {
-          drupal_set_message(t('Sorry, but this @social_network account is already linked to another user on this website.', array(
-            '@social_network' => $provider_name
-          )), 'error');
+          // Social Network used to connect.
+          $provider_name = $user_data['identity']['source']['name'];
+
+          // Check if token is already linked.
+          $uid = social_login_get_uid_for_user_token($user_token);
+
+          // Already linked.
+          if ($uid !== FALSE) {
+
+            // Linked to a different user?
+            if ($account->id() != $uid) {
+
+              // Add user error message.
+              drupal_set_message(t('Sorry, but this @social_network account is already linked to another user on this website.', array(
+                '@social_network' => $provider_name
+              )), 'error');
+
+            } else {
+
+              // Redirection.
+              if (isset ($settings['redirect_login']))
+              {
+                  $redirect_to = str_ireplace ('{userid}', $uid,  $settings['redirect_login']);
+              }
+
+            }
+          }
+          // Not linked.
+          else {
+
+            // Link to this user.
+            if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider_name)) {
+
+              // Add user success message.
+              drupal_set_message(t('Your @social_network account has been linked to your account. You may now use @social_network to login.', array(
+                '@social_network' => $provider_name
+              )), 'status');
+
+              // Redirection.
+              if (isset ($settings['redirect_registration']))
+              {
+                  $redirect_to = str_ireplace ('{userid}', $uid,  $settings['redirect_registration']);
+              }
+            }
+          }
+
+          // Clear session.
+          social_login_clear_session();
+
+          // Redirect to origin.
+          if (strlen(trim($redirect_to)) > 0) {
+              $response = new RedirectResponse($redirect_to);
+              $response->send();
+              return;
+          }
+
         }
-      }
-      // Not linked.
-      else {
-        // Link to this user.
-        if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider_name)) {
-          drupal_set_message(t('Your @social_network account has been linked to your account. You may now use @social_network to login.', array(
-            '@social_network' => $provider_name
-          )), 'status');
+        else {
+          \Drupal::logger('social_login')->error('Invalid JSON received from OneAll API.');
         }
-      }
-    }
-    else {
-      \Drupal::logger('social_login')->error('Invalid JSON received from OneAll API.');
-    }
-
-    // Restore to origin.
-    $origin = (isset($_SESSION['social_login_origin']) ? $_SESSION['social_login_origin'] : '');
-
-    // Clear session.
-    social_login_clear_session();
-
-    // Redirect to origin.
-    if (strlen(trim($origin)) > 0) {
-      $response = new RedirectResponse($origin);
-      $response->send();
-      return;
-    }
+     }
   }
 }
 
@@ -923,9 +958,43 @@ function social_login_get_settings() {
 
   // Container.
   $settings = array();
+
+  // Default \ Side panel.
+  $settings['side_panel_icons'] = '';
+  $settings['side_panel_caption'] = '';
+
+  // Default \ Registration page.
+  $settings['registration_page_icons'] = 'above';
+  $settings['registration_page_caption'] = '';
+
+  // Default \ Login page.
+  $settings['login_page_icons'] = 'below';
+  $settings['login_page_caption'] = '';
+
+  // Default \ Profile page.
+  $settings['profile_page_icons'] = 'below';
+  $settings['profile_page_caption'] = '';
+
+  // Default \ API connection.
+  $settings['api_subdomain'] = '';
+  $settings['api_key'] = '';
+  $settings['api_secret'] = '';
+  $settings['http_handler'] = 'curl';
+  $settings['http_protocol'] = 'https';
+
+  // Default \ Account creation.
+  $settings['registration_retrieve_avatars'] = 'enable';
+  $settings['registration_approval'] = 'inherit';
+  $settings['registration_method'] = 'manual';
+
+  // Default \ Redirection.
+  $settings['redirect_login'] = '';
+  $settings['redirect_registration'] = '';
+
+  // Default \ Providers.
   $settings['enabled_providers'] = array();
 
-  // Read settings.
+  // Build custom settings.
   $results = db_query("SELECT setting, value FROM {oneall_social_login_settings}");
   foreach ($results as $result) {
     $settings[$result->setting] = $result->value;

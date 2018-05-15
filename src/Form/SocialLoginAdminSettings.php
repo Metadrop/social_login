@@ -289,6 +289,30 @@ class SocialLoginAdminSettings extends ConfigFormBase {
       '#default_value' => (empty($settings['registration_method']) ? 'manual' : $settings['registration_method']),
     );
 
+    // Redirection settings.
+    $form['social_login_settings_redirection'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Redirection settings'),
+    );
+
+    $form['social_login_settings_redirection']['redirect_login'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Redirect to this page when an existing user logs in with Social Login: [Leave empty for default redirections]'),
+        '#default_value' => (!isset($settings['redirect_login']) ? '' : $settings['redirect_login']),
+        '#size' => 100,
+        '#maxlength' => 100,
+        '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
+    );
+
+    $form['social_login_settings_redirection']['redirect_registration'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Redirect to this page when a new user registers using Social Login: [Leave empty for default redirections]'),
+        '#default_value' => (!isset($settings['redirect_registration']) ? '' : $settings['redirect_registration']),
+        '#size' => 100,
+        '#maxlength' => 100,
+        '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has signed up.'),
+    );
+
     // Enable the social networks/identity providers.
     $form['social_login_providers'] = array(
       '#type' => 'fieldset',

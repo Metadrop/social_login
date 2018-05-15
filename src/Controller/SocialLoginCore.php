@@ -114,11 +114,12 @@ class SocialLoginCore extends ControllerBase
                                 // Make sure that the user has not been blocked.
                                 $name = $user_for_token->get('name')->value;
 
-                                // Not blocked.
+                                // The user is not blocked.
                                 if (!user_is_blocked($name))
                                 {
                                     user_login_finalize($user_for_token);
                                 }
+                                // The user is blocked.
                                 else
                                 {
                                     drupal_set_message(t('Your account is blocked.'), 'error');
@@ -149,7 +150,10 @@ class SocialLoginCore extends ControllerBase
                                         // Link identity.
                                         if ($data['plugin']['data']['action'] == 'link_identity')
                                         {
+                                            // Add mapping.
                                             social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
+
+                                            // Add user message.
                                             drupal_set_message(t('The @social_network account has been linked to your account.', array(
                                                 '@social_network' => $provider_name
                                             )), 'status');
@@ -164,7 +168,10 @@ class SocialLoginCore extends ControllerBase
                                         // Unlink identity.
                                         else
                                         {
+                                            // Remove mapping.
                                             social_login_unmap_identity_token($identity_token);
+
+                                            // Add user message.
                                             drupal_set_message(t('The social network account has been unlinked from your account.'), 'status');
 
                                             // Add log.
@@ -190,7 +197,6 @@ class SocialLoginCore extends ControllerBase
                                     }
 
                                     // Redirect.
-
                                     return new RedirectResponse($redirect_to);
                                 }
                                 // User is not logged in.
@@ -202,7 +208,6 @@ class SocialLoginCore extends ControllerBase
                                     social_login_clear_session();
 
                                     // Redirect to home.
-
                                     return new RedirectResponse(\Drupal::url('<front>'));
                                 }
                             }
@@ -256,7 +261,6 @@ class SocialLoginCore extends ControllerBase
                                     }
 
                                     // Redirect.
-
                                     return new RedirectResponse($redirect_to);
                                 }
                                 // User is not logged in.
@@ -268,7 +272,6 @@ class SocialLoginCore extends ControllerBase
                                     social_login_clear_session();
 
                                     // Redirect to home.
-
                                     return new RedirectResponse(\Drupal::url('<front>'));
                                 }
                             }
@@ -460,17 +463,19 @@ class SocialLoginCore extends ControllerBase
                                                 // Redirect to login page (login manually).
                                                 drupal_set_message(t('Error while logging you in, please try to login manually.'), 'error');
                                                 \Drupal::logger('social_login')->error('Unable to automatically login in the user.');
-
                                                 return new RedirectResponse(\Drupal::url('user.login'));
                                             }
                                         }
                                         // An error occured during user_save().
                                         else
                                         {
-                                            // Redirect to registration page (register manually).
+                                            // Add user message.
                                             drupal_set_message(t('Error while creating your user account, please try to register manually.'), 'error');
+
+                                            // Add log.
                                             \Drupal::logger('social_login')->error('Unable to automatically register the new user.');
 
+                                            // Redirect to registration page to register manually.
                                             return new RedirectResponse(\Drupal::url('user.register'));
                                         }
                                     }
@@ -482,11 +487,10 @@ class SocialLoginCore extends ControllerBase
                                         return new RedirectResponse(\Drupal::url('user.register'));
                                     }
                                 }
-                                // Registration disabled.
+                                // Registration is disabled.
                                 else
                                 {
                                     drupal_set_message(t('Only site administrators can create new user accounts.'), 'error');
-
                                     return new RedirectResponse(\Drupal::url('<front>'));
                                 }
                             }
@@ -500,16 +504,20 @@ class SocialLoginCore extends ControllerBase
             }
         }
 
-        // Redirect to previous page if origin defined
-        if (!empty($_GET['origin']))
+        // Redirect to origin if it's defined.
+        if (isset ($_GET['origin']))
         {
-            $redirect_to = $_GET['origin'];
+            // Cleanup.
+            $origin = trim ($_GET['origin']);
 
-            return new RedirectResponse($redirect_to);
+            // Make sure it's not empty.
+            if (strlen ($origin) > 0)
+            {
+                return new RedirectResponse($origin);
+            }
         }
 
-        // Return to the front page.
-
+        // Default: return to the front page.
         return new RedirectResponse(\Drupal::url('<front>'));
     }
 }
