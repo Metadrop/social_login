@@ -295,22 +295,43 @@ class SocialLoginAdminSettings extends ConfigFormBase {
         '#title' => t('Redirection settings'),
     );
 
-    $form['social_login_settings_redirection']['redirect_login'] = array(
+    $form['social_login_settings_redirection']['redirect_login_path'] = array(
+        '#type' => 'select',
+        '#default_value' => (empty($settings['redirect_login_path']) ? 'home' : $settings['redirect_login_path']),
+        '#title' => t('When existing users login with Social Login ...'),
+        '#options' => array(
+            'home' => t('... redirect them to the homepage (Default)'),
+            'same' => t('... redirect them back to the same page'),
+            'custom' => t('... redirect them to the url below:'),
+        ),
+    );
+
+    $form['social_login_settings_redirection']['redirect_login_custom_uri'] = array(
         '#type' => 'textfield',
-        '#title' => t('Redirect to this page when an existing user logs in with Social Login: [Leave empty for default redirections]'),
-        '#default_value' => (!isset($settings['redirect_login']) ? '' : $settings['redirect_login']),
+        '#default_value' => (!isset($settings['redirect_login_custom_uri']) ? '' : $settings['redirect_login_custom_uri']),
         '#size' => 100,
         '#maxlength' => 100,
         '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
     );
 
-    $form['social_login_settings_redirection']['redirect_registration'] = array(
+
+    $form['social_login_settings_redirection']['redirect_register_path'] = array(
+        '#type' => 'select',
+        '#default_value' => (empty($settings['redirect_register_path']) ? 'home' : $settings['redirect_login_path']),
+        '#title' => t('When new users signup with Social Login ...'),
+        '#options' => array(
+            'home' => t('... redirect them to the homepage (Default)'),
+            'same' => t('... redirect them back to the same page'),
+            'custom' => t('... redirect them to the url below:'),
+        ),
+    );
+
+    $form['social_login_settings_redirection']['redirect_register_custom_uri'] = array(
         '#type' => 'textfield',
-        '#title' => t('Redirect to this page when a new user registers using Social Login: [Leave empty for default redirections]'),
-        '#default_value' => (!isset($settings['redirect_registration']) ? '' : $settings['redirect_registration']),
+        '#default_value' => (!isset($settings['redirect_register_custom_uri']) ? '' : $settings['redirect_register_custom_uri']),
         '#size' => 100,
         '#maxlength' => 100,
-        '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has signed up.'),
+        '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
     );
 
     // Enable the social networks/identity providers.
