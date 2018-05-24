@@ -17,7 +17,7 @@ use GuzzleHttp\Exception\ConnectException;
  */
 function social_login_help($route_name, RouteMatchInterface $route_match) {
   if ($route_name == 'admin.help.social_login') {
-    return t('We are devoted to creating a positive experience for our customers. Feel free to <a href="@oneall_support" target="_blank">request support</a> if you have any questions and/or feedback.', array(
+    return $this->t('We are devoted to creating a positive experience for our customers. Feel free to <a href="@oneall_support" target="_blank">request support</a> if you have any questions and/or feedback.', array(
       '@oneall_support' => 'https://support.oneall.com/'
     ));
   }
@@ -116,16 +116,16 @@ function social_login_form_user_register_form_alter(&$form, FormStateInterface $
       $form['account']['mail']['#default_value'] = $user_email;
 
       // Tell the user what is going on.
-      $form['social_login_create_account'] = array(
+      $form['social_login_create_account'] = [
         '#type' => 'item',
         '#weight' => -100,
-        '#title' => t('You have successfully connected to @social_network', array(
+        '#title' => $this->t('You have successfully connected to @social_network', [
           '@social_network' => $provider_name
-        )),
-        '#description' => t('Please complete the form to create your account. Once your account has been created, you can use @social_network to log in.', array(
+        ]),
+        '#description' => $this->t('Please complete the form to create your account. Once your account has been created, you can use @social_network to log in.', [
           '@social_network' => $provider_name
-        ))
-      );
+        ])
+      ];
     }
   }
   else {
@@ -162,7 +162,7 @@ function social_login_show_providers(&$form, $form_state, $target) {
       // Do not show if disabled by admin.
       if ($settings['side_panel_icons'] != 'disable') {
         $widget_enabled = TRUE;
-        $title = $settings['side_panel_caption'];
+        $title = $this->t($settings['side_panel_caption']);
         $position = ($settings['side_panel_icons'] == 'below' ? 100 : (-100));
       }
     break;
@@ -176,7 +176,7 @@ function social_login_show_providers(&$form, $form_state, $target) {
         // Do not show if disabled by admin.
         if ($settings['registration_page_icons'] != 'disable') {
           $widget_enabled = TRUE;
-          $title = $settings['registration_page_caption'];
+          $title = $this->t($settings['registration_page_caption']);
           $position = ($settings['registration_page_icons'] == 'below' ? 100 : (-100));
         }
       }
@@ -191,7 +191,7 @@ function social_login_show_providers(&$form, $form_state, $target) {
         // Do not show if disabled by admin.
         if ($settings['login_page_icons'] != 'disable') {
           $widget_enabled = TRUE;
-          $title = $settings['login_page_caption'];
+          $title = $this->t($settings['login_page_caption']);
           $position = ($settings['login_page_icons'] == 'above' ? -100 : 100);
         }
       }
@@ -200,18 +200,25 @@ function social_login_show_providers(&$form, $form_state, $target) {
     // Edit Profile Page.
     case 'edit_profile_page' :
       if ($settings['profile_page_icons'] != 'disable') {
+
         // Needed to retrieve his token.
         $user = Drupal::currentUser();
+
         // Unique token.
         $token = social_login_get_user_token_for_uid($user->id());
+
         // Type of plugin.
         $plugin_type = 'social_link';
+
         // Enable Widget.
         $widget_enabled = TRUE;
+
         // Show in fieldset.
         $widget_in_fieldset = TRUE;
+
         // Title.
-        $title = $settings['profile_page_caption'];
+        $title = $this->t($settings['profile_page_caption']);
+
         // Display on top.
         $position = ($settings['profile_page_icons'] == 'above' ? -100 : 100);
       }
@@ -220,10 +227,13 @@ function social_login_show_providers(&$form, $form_state, $target) {
     // Unkown.
     default :
       $plugin_type = 'social_login';
+
       // Widget is enabled.
       $widget_enabled = TRUE;
+
       // Default title.
-      $title = t('Login with');
+      $title = $this->t('Login with');
+
       // Display on botton.
       $position = 100;
     break;
@@ -231,42 +241,44 @@ function social_login_show_providers(&$form, $form_state, $target) {
 
   // Enabled.
   if ($widget_enabled === TRUE) {
+
     // Container to add the buttons to.
     $containerid = 'social_login_providers_' . rand(99999, 9999999);
 
+    // Add library.
     social_login_add_js_plugin($form, $settings['api_subdomain']);
 
     $current_uri = social_login_get_current_url($is_https);
-    $callback_uri = Url::fromRoute('social_login.core', [], array(
+    $callback_uri = Url::fromRoute('social_login.core', [], [
       'absolute' => TRUE,
-      'query' => array(
+      'query' => [
         'origin' => $current_uri
-      )
-    ))->toString();
+      ]
+    ])->toString();
 
     // Show in fieldset.
     if ($widget_in_fieldset) {
-      $form['social_login_' . $containerid] = array(
+      $form['social_login_' . $containerid] = [
         '#type' => 'details',
         '#title' => $title,
         '#weight' => $position,
         '#open' => TRUE,
         '#label' => ''
-      );
-      $form['social_login_' . $containerid]['item'] = array(
+      ];
+      $form['social_login_' . $containerid]['item'] = [
         '#theme' => 'provider_container',
         '#containerid' => $containerid,
         '#plugintype' => $plugin_type,
         '#providers' => $settings['enabled_providers'],
         '#token' => $token,
         '#callbackuri' => $callback_uri,
-        '#cache' => array(
+        '#cache' => [
            'max-age' => 0
-        )
-      );
+        ]
+      ];
     }
     else {
-      $form['social_login_' . $containerid] = array(
+      $form['social_login_' . $containerid] = [
         '#label' => $title,
         '#weight' => $position,
         '#theme' => 'provider_container',
@@ -275,10 +287,10 @@ function social_login_show_providers(&$form, $form_state, $target) {
         '#providers' => $settings['enabled_providers'],
         '#token' => $token,
         '#callbackuri' => $callback_uri,
-        '#cache' => array(
+        '#cache' => [
            'max-age' => 0
-        )
-      );
+        ]
+      ];
     }
   }
 }
@@ -287,21 +299,21 @@ function social_login_show_providers(&$form, $form_state, $target) {
  * Implements hook_theme().
  */
 function social_login_theme($existing, $type, $theme, $path) {
-  return array(
-    'provider_container' => array(
-      'variables' => array(
+  return [
+    'provider_container' => [
+      'variables' => [
         'containerid' => NULL,
         'label' => NULL,
         'plugintype' => NULL,
-        'providers' => array(),
+        'providers' => [],
         'token' => NULL,
         'callbackuri' => NULL,
-        'cache' => array(
+        'cache' => [
           'max-age' => 0
-        )
-      )
-    )
-  );
+        ]
+      ]
+    ]
+  ];
 }
 
 /**
@@ -311,7 +323,7 @@ function social_login_add_js_plugin(&$form, $subdomain) {
   if (!empty($subdomain)) {
 
     // Build code.
-    $js = array();
+    $js = [];
     $js[] = "(function() {";
     $js[] = " var oa=document.createElement('script'); oa.type='text/javascript';";
     $js[] = " oa.async=true; oa.src='//" . $subdomain . ".api.oneall.com/socialize/library.js';";
@@ -320,16 +332,16 @@ function social_login_add_js_plugin(&$form, $subdomain) {
     $js = implode(PHP_EOL, $js);
 
     // Add to page.
-    $form['#attached']['html_head'][] = array(
-      array(
+    $form['#attached']['html_head'][] = [
+      [
         '#tag' => 'script',
         '#value' => $js,
-        '#attributes' => array(
+        '#attributes' => [
           'type' => 'text/javascript'
-        )
-      ),
+        ]
+      ],
       'social_login'
-    );
+    ];
   }
 }
 
@@ -398,11 +410,11 @@ function social_login_user_insert($account) {
       }
 
       // Add log.
-      \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', array(
+      \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', [
         '@name' => $account->getAccountName(),
         '@provider' => $provider_name,
         '@identity_token' => $identity_token
-      ));
+      ]);
     }
 
     // Clear the session.
@@ -454,9 +466,7 @@ function social_login_user_login($account) {
             if ($account->id() != $uid) {
 
               // Add user error message.
-              drupal_set_message(t('Sorry, but this @social_network account is already linked to another user on this website.', array(
-                '@social_network' => $provider_name
-              )), 'error');
+              drupal_set_message(t('Sorry, but this @social_network account is already linked to another user on this website.', ['@social_network' => $provider_name]), 'error');
 
             } else {
 
@@ -475,9 +485,7 @@ function social_login_user_login($account) {
             if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider_name)) {
 
               // Add user success message.
-              drupal_set_message(t('Your @social_network account has been linked to your account. You may now use @social_network to login.', array(
-                '@social_network' => $provider_name
-              )), 'status');
+              drupal_set_message(t('Your @social_network account has been linked to your account. You may now use @social_network to login.', ['@social_network' => $provider_name]), 'status');
 
               // Redirection.
               if (isset ($settings['redirect_registration']))
@@ -509,9 +517,7 @@ function social_login_user_login($account) {
  * Implements hook_user_delete().
  */
 function social_login_user_delete($account) {
-  $aids = db_query("SELECT aid FROM {oneall_social_login_authmap} WHERE uid = :userid", array(
-    ':userid' => $account->id()
-  ))->fetchCol();
+  $aids = db_query("SELECT aid FROM {oneall_social_login_authmap} WHERE uid = :userid", [':userid' => $account->id()])->fetchCol();
   if (is_array($aids)) {
     foreach ($aids as $aid) {
       db_delete('oneall_social_login_identities')->condition('aid', $aid)->execute();
@@ -565,10 +571,8 @@ function social_login_curl_lookup_real_url($url, $max_redirects = 3, $timeout = 
   $curl_status = curl_getinfo($curl);
   curl_close($curl);
 
-  if (in_array($curl_status['http_code'], array(
-    301,
-    302
-  )) && $max_redirects > 0) {
+  // Follow the location?
+  if (in_array($curl_status['http_code'], [301,302]) && $max_redirects > 0) {
     list ($header) = explode("\r\n\r\n", $curl_result, 2);
     if (preg_match("/(Location:|URI:)[^(\n)]*/", $header, $matches)) {
       $url_tmp = trim(str_replace($matches[1], "", $matches[0]));
@@ -604,7 +608,7 @@ function social_login_check_fsockopen($protocol = 'https') {
 /**
  * Sends an API request by using the given handler.
  */
-function social_login_do_api_request($handler, $url, $options = array(), $timeout = 30) {
+function social_login_do_api_request($handler, $url, $options = [], $timeout = 30) {
   $user_agent_string = 'SocialLogin/2.7.2 Drupal/8.x (+http://www.oneall.com/)';
 
   $http_code = 'n/a';
@@ -649,19 +653,16 @@ function social_login_do_api_request($handler, $url, $options = array(), $timeou
         $http_data = $e->getMessage();
       }
     }
-    return array(
+    return [
       'http_code' => $http_code,
       'http_data' => $http_data
-    );
+    ];
   }
   // CURL?
   else {
 
     // Open_basedir is set or safe_mode is on, CURL may not follow urls.
-    if (strlen(trim(ini_get('open_basedir'))) > 0 || in_array(strtolower(ini_get('safe_mode')), array(
-      'on',
-      1
-    ))) {
+    if (strlen(trim(ini_get('open_basedir'))) > 0 || in_array(strtolower(ini_get('safe_mode')), ['on', 1])) {
       $allow_follow_location = FALSE;
     }
     else {
@@ -759,9 +760,7 @@ function social_login_link_social_network_avatar($social_data, $account) {
         $tmp_file = file_save_data($http_result['http_data'], $tmp_path, FILE_EXISTS_REPLACE);
 
         if ($tmp_file === FALSE) {
-          Drupal::logger('social_login')->error('Could not save user avatar to @path', array(
-            '@path' => $tmp_path
-          ));
+          Drupal::logger('social_login')->error('Could not save user avatar to @path', ['@path' => $tmp_path]);
           return;
         }
 
@@ -790,18 +789,18 @@ function social_login_link_social_network_avatar($social_data, $account) {
             Drupal::logger('social_login')->notice('- ' . __FUNCTION__ . '@' . __LINE__ . ' max_filesize unit is bytes');
           }
 
-          $validation = array(
-            "file_validate_image_resolution" => array(
+          $validation = [
+            "file_validate_image_resolution" => [
               $field->getSetting('max_resolution')
-            ),
-            "file_validate_size" => array(
+            ],
+            "file_validate_size" => [
               $size
-            ),
-            "file_validate_extensions" => array(
+            ],
+            "file_validate_extensions" => [
               $field->getSetting('file_extensions')
-            ),
-            "file_validate_name_length" => array()
-          );
+            ],
+            "file_validate_name_length" => []
+          ];
           $errors = file_validate($real_file, $validation);
 
           // Update the database if validation succeeded.
@@ -815,9 +814,7 @@ function social_login_link_social_network_avatar($social_data, $account) {
           }
           else {
             foreach ($errors as $e) {
-              Drupal::logger('social_login')->error('Image validation error: @description', array(
-                '@description' => $e
-              ));
+              Drupal::logger('social_login')->error('Image validation error: @description', ['@description' => $e]);
             }
             $real_file->delete();
           }
@@ -848,20 +845,14 @@ function social_login_map_identity_token_to_user_token($account, $identity_token
     // Update internal authmaps.
     // This code is adapted from D7 former user_set_authmap().
     if ($user_token) {
-      db_merge('oneall_social_login_authmap')->key(array(
-        'uid' => $account->id()
-      ))->fields(array(
-        'user_token' => $user_token
-      ))->execute();
+      db_merge('oneall_social_login_authmap')->key(['uid' => $account->id()])->fields(['user_token' => $user_token])->execute();
     }
     else {
       db_delete('oneall_social_login_authmap')->condition('uid', $account->id())->execute();
     }
 
     // Get the new authmap identifier.
-    $aid = db_select('oneall_social_login_authmap', 'a')->fields('a', array(
-      'aid'
-    ))->condition('user_token', $user_token, '=')->execute()->fetchField();
+    $aid = db_select('oneall_social_login_authmap', 'a')->fields('a', ['aid'])->condition('user_token', $user_token, '=')->execute()->fetchField();
 
     if (is_numeric($aid)) {
 
@@ -869,11 +860,11 @@ function social_login_map_identity_token_to_user_token($account, $identity_token
       db_delete('oneall_social_login_identities')->condition('aid', $aid)->condition('identity_token', $identity_token)->execute();
 
       // Add identity.
-      db_insert('oneall_social_login_identities')->fields(array(
+      db_insert('oneall_social_login_identities')->fields([
         'aid' => $aid,
         'identity_token' => $identity_token,
         'provider_name' => $provider_name
-      ))->execute();
+      ])->execute();
 
       // Success.
       return TRUE;
@@ -904,9 +895,7 @@ function social_login_get_user_for_user_token($user_token) {
  * Return the uid for a user_token.
  */
 function social_login_get_uid_for_user_token($user_token) {
-  $uid = db_query("SELECT uid FROM {oneall_social_login_authmap} WHERE user_token = :token", array(
-    ':token' => $user_token
-  ))->fetchField();
+  $uid = db_query("SELECT uid FROM {oneall_social_login_authmap} WHERE user_token = :token", [':token' => $user_token])->fetchField();
   return (is_numeric($uid) ? $uid : FALSE);
 }
 
@@ -914,9 +903,7 @@ function social_login_get_uid_for_user_token($user_token) {
  * Return the user_token for a uid.
  */
 function social_login_get_user_token_for_uid($uid) {
-  $user_token = db_query("SELECT user_token FROM {oneall_social_login_authmap} WHERE uid = :uid", array(
-    ':uid' => $uid
-  ))->fetchField();
+  $user_token = db_query("SELECT user_token FROM {oneall_social_login_authmap} WHERE uid = :uid", [':uid' => $uid])->fetchField();
   return (!empty($user_token) ? $user_token : FALSE);
 }
 
@@ -924,9 +911,7 @@ function social_login_get_user_token_for_uid($uid) {
  * Get the uid for a name.
  */
 function social_login_get_uid_for_name($name) {
-  $users = Drupal::entityTypeManager()->getStorage('user')->loadByProperties(array(
-    'name' => $name
-  ));
+  $users = Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['name' => $name]);
   return (empty($users) ? FALSE : $users);
 }
 
@@ -934,9 +919,7 @@ function social_login_get_uid_for_name($name) {
  * Get the user(s) for an email address.
  */
 function social_login_get_uid_for_email($mail) {
-  $users = Drupal::entityTypeManager()->getStorage('user')->loadByProperties(array(
-    'mail' => $mail
-  ));
+  $users = Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => $mail]);
   return (empty($users) ? FALSE : $users);
 }
 
@@ -957,7 +940,7 @@ function social_login_create_random_email() {
 function social_login_get_settings() {
 
   // Container.
-  $settings = array();
+  $settings = [];
 
   // Default \ Side panel.
   $settings['side_panel_icons'] = '';
@@ -992,7 +975,7 @@ function social_login_get_settings() {
   $settings['redirect_registration'] = '';
 
   // Default \ Providers.
-  $settings['enabled_providers'] = array();
+  $settings['enabled_providers'] = []
 
   // Build custom settings.
   $results = db_query("SELECT setting, value FROM {oneall_social_login_settings}");
@@ -1011,7 +994,7 @@ function social_login_get_settings() {
 function social_login_preprocess_page(&$vars, $hook) {
   if (is_array($vars['page']) && isset($vars['page']) && isset($vars['page']['footer'])) {
     if (isset($vars['page']['footer']['system_powered-by']) && isset($vars['page']['footer']['system_powered-by']['#markup'])) {
-      $vars['page']['footer']['system_powered-by']['#markup'] .= '&nbsp; | &nbsp;' . Drupal::l(t('Social Login'), Url::fromUri('http://www.oneall.com/services/social-login/')) . ' ' . t('powered by') . ' ' . Drupal::l(t('OneAll'), Url::fromUri('http://www.oneall.com/'));
+      $vars['page']['footer']['system_powered-by']['#markup'] .= '&nbsp; | &nbsp;' . Drupal::l(t('Social Login'), Url::fromUri('http://www.oneall.com/services/social-login/')) . ' ' . $this->t('powered by') . ' ' . Drupal::l('OneAll', Url::fromUri('http://www.oneall.com/'));
     }
   }
 }
@@ -1020,122 +1003,122 @@ function social_login_preprocess_page(&$vars, $hook) {
  * Return the list of available providers.
  */
 function social_login_get_available_providers() {
-  $providers = array(
-    'amazon' => array(
+  $providers = [
+    'amazon' => [
       'name' => 'Amazon'
-    ),
-    'battlenet' => array(
+    ],
+    'battlenet' => [
       'name' => 'Battle.net'
-    ),
-    'blogger' => array(
+    ],
+    'blogger' => [
       'name' => 'Blogger'
-    ),
-    'discord' => array(
+    ],
+    'discord' => [
       'name' => 'Discord'
-    ),
-    'disqus' => array(
+    ],
+    'disqus' => [
       'name' => 'Disqus'
-    ),
-    'draugiem' => array(
+    ],
+    'draugiem' => [
       'name' => 'Draugiem'
-    ),
-    'dribbble' => array(
+    ],
+    'dribbble' => [
       'name' => 'Dribbble'
-    ),
-    'facebook' => array(
+    ],
+    'facebook' => [
       'name' => 'Facebook'
-    ),
-    'foursquare' => array(
+    ],
+    'foursquare' => [
       'name' => 'Foursquare'
-    ),
-    'github' => array(
+    ],
+    'github' => [
       'name' => 'Github.com'
-    ),
-    'google' => array(
+    ],
+    'google' => [
       'name' => 'Google'
-    ),
-    'instagram' => array(
+    ],
+    'instagram' => [
       'name' => 'Instagram'
-    ),
-    'line' => array(
+    ],
+    'line' => [
       'name' => 'Line'
-    ),
-    'linkedin' => array(
+    ],
+    'linkedin' => [
       'name' => 'LinkedIn'
-    ),
-    'livejournal' => array(
+    ],
+    'livejournal' => [
       'name' => 'LiveJournal'
-    ),
-    'mailru' => array(
+    ],
+    'mailru' => [
       'name' => 'Mail.ru'
-    ),
-    'meetup' => array(
+    ],
+    'meetup' => [
       'name' => 'Meetup'
-    ),
-    'odnoklassniki' => array(
+    ],
+    'odnoklassniki' => [
       'name' => 'Odnoklassniki'
-    ),
-    'openid' => array(
+    ],
+    'openid' => [
       'name' => 'OpenID'
-    ),
-    'paypal' => array(
+    ],
+    'paypal' => [
       'name' => 'PayPal'
-    ),
-    'pinterest' => array(
+    ],
+    'pinterest' => [
       'name' => 'Pinterest'
-    ),
-    'pixelpin' => array(
+    ],
+    'pixelpin' => [
       'name' => 'PixelPin'
-    ),
-    'reddit' => array(
+    ],
+    'reddit' => [
       'name' => 'Reddit'
-    ),
-    'skyrock' => array(
+    ],
+    'skyrock' => [
       'name' => 'Skyrock.com'
-    ),
-    'soundcloud' => array(
+    ],
+    'soundcloud' => [
       'name' => 'SoundCloud'
-    ),
-    'stackexchange' => array(
+    ],
+    'stackexchange' => [
       'name' => 'StackExchange'
-    ),
-    'steam' => array(
+    ],
+    'steam' => [
       'name' => 'Steam'
-    ),
-    'tumblr' => array(
+    ],
+    'tumblr' => [
       'name' => 'Tumblr'
-    ),
-    'twitch' => array(
+    ],
+    'twitch' => [
       'name' => 'Twitch.tv'
-    ),
-    'twitter' => array(
+    ],
+    'twitter' => [
       'name' => 'Twitter'
-    ),
-    'vimeo' => array(
+    ],
+    'vimeo' => [
       'name' => 'Vimeo'
-    ),
-    'vkontakte' => array(
+    ],
+    'vkontakte' => [
       'name' => 'VKontakte'
-    ),
-    'weibo' => array(
+    ],
+    'weibo' => [
       'name' => 'Weibo'
-    ),
-    'windowslive' => array(
+    ],
+    'windowslive' => [
       'name' => 'Windows Live'
-    ),
-    'wordpress' => array(
+    ],
+    'wordpress' => [
       'name' => 'WordPress.com'
-    ),
-    'xing' => array(
+    ],
+    'xing' => [
       'name' => 'Xing'
-    ),
-    'yahoo' => array(
+    ],
+    'yahoo' => [
       'name' => 'Yahoo'
-    ),
-    'youtube' => array(
+    ],
+    'youtube' => [
       'name' => 'YouTube'
-    )
-  );
+    ]
+  ];
 
   return $providers;
 }
@@ -1175,10 +1158,7 @@ function social_login_get_current_url($https_enabled = FALSE) {
     }
 
     // Remove standard ports.
-    $request_port = (!in_array($request_port, array(
-      80,
-      443
-    )) ? $request_port : '');
+    $request_port = (!in_array($request_port, [80, 443]) ? $request_port : '');
 
     // Build url.
     $redirect_to = $request_protocol . '://' . $request_host . (!empty($request_port) ? (':' . $request_port) : '') . $request_uri;
@@ -1191,12 +1171,17 @@ function social_login_get_current_url($https_enabled = FALSE) {
  * Remove the session data.
  */
 function social_login_clear_session() {
-  foreach (array(
-    'session_open',
-    'session_time',
-    'social_data',
-    'origin'
-  ) as $key) {
+
+  // Our session keys.
+  $keys = [
+      'session_open',
+      'session_time',
+      'social_data',
+      'origin'
+  ];
+
+  // Loop through keys and remove them.
+  foreach ($keys as $key) {
     $key = 'social_login_' . $key;
     if (isset($_SESSION[$key])) {
       unset($_SESSION[$key]);
@@ -1210,7 +1195,7 @@ function social_login_clear_session() {
 function social_login_get_disabled_functions() {
   $disabled_functions = trim(ini_get('disable_functions'));
   if (strlen($disabled_functions) == 0) {
-    $disabled_functions = array();
+    $disabled_functions = [];
   }
   else {
     $disabled_functions = explode(',', $disabled_functions);

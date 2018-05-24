@@ -22,7 +22,7 @@ class SocialLoginCore extends ControllerBase
         $settings = social_login_get_settings();
 
         // No need to do anything if we haven't received these arguments.
-        if (isset($_POST) && !empty($_POST['connection_token']) && !empty($_POST['oa_action']) && in_array($_POST['oa_action'], array('social_login', 'social_link')))
+        if (isset($_POST) && !empty($_POST['connection_token']) && !empty($_POST['oa_action']) && in_array($_POST['oa_action'], ['social_login', 'social_link']))
         {
             // Clear session.
             social_login_clear_session();
@@ -42,26 +42,17 @@ class SocialLoginCore extends ControllerBase
 
             // Automatic or manual registration?
             $registration_method = (!empty($settings['registration_method']) ? $settings['registration_method'] : '');
-            $registration_method = (in_array($registration_method, array(
-                'manual',
-                'auto_random_email',
-                'auto_manual_email'
-            )) ? $registration_method : 'manual');
+            $registration_method = (in_array($registration_method, ['manual', 'auto_random_email', 'auto_manual_email']) ? $registration_method : 'manual');
 
             // Require approval?
             $registration_approval = (!empty($settings['registration_approval']) ? $settings['registration_approval'] : '');
-            $registration_approval = (in_array($registration_approval, array(
-                'inherit',
-                'disable',
-                'enable'
-            )) ? $registration_approval : 'inherit');
+            $registration_approval = (in_array($registration_approval, ['inherit', 'disable', 'enable']) ? $registration_approval : 'inherit');
 
             // Retrieved connection_token.
             $token = trim($_POST['connection_token']);
 
             // Settings missing.
-            if (empty($api_subdomain) || empty($api_key) || empty($api_secret))
-            {
+            if (empty($api_subdomain) || empty($api_key) || empty($api_secret)) {
                 drupal_set_message($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'), 'error');
                 \Drupal::logger('social_login')->error('Unable to usge Social Login, the API Settings are not filled out correctly.');
             }
@@ -69,10 +60,10 @@ class SocialLoginCore extends ControllerBase
             else
             {
                 // Request identity details API.
-                $data = social_login_do_api_request($handler, $protocol . '://' . $api_subdomain . '.api.oneall.com/connections/' . $token . '.json', array(
+                $data = social_login_do_api_request($handler, $protocol . '://' . $api_subdomain . '.api.oneall.com/connections/' . $token . '.json', [
                     'api_key' => $api_key,
                     'api_secret' => $api_secret
-                ));
+                ]);
 
                 if (is_array($data) && !empty($data['http_data']))
                 {
@@ -140,9 +131,9 @@ class SocialLoginCore extends ControllerBase
                                     // The existing token does not match the current user!
                                     if ($user_for_token->id() != $user->id())
                                     {
-                                        drupal_set_message($this->t('This @social_network account is already linked to another user.', array(
+                                        drupal_set_message($this->t('This @social_network account is already linked to another user.', [
                                             '@social_network' => $provider_name
-                                        )), 'error');
+                                        ]), 'error');
                                     }
                                     // The existing token matches the current user!
                                     else
@@ -154,16 +145,16 @@ class SocialLoginCore extends ControllerBase
                                             social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
 
                                             // Add user message.
-                                            drupal_set_message($this->t('The @social_network account has been linked to your account.', array(
+                                            drupal_set_message($this->t('The @social_network account has been linked to your account.', [
                                                 '@social_network' => $provider_name
-                                            )), 'status');
+                                            ]), 'status');
 
                                             // Add log.
-                                            \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', array(
+                                            \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
                                                 '@name' => $user->getAccountName(),
                                                 '@provider' => $provider_name,
                                                 '@identity_token' => $identity_token
-                                            ));
+                                            ]);
                                         }
                                         // Unlink identity.
                                         else
@@ -175,10 +166,10 @@ class SocialLoginCore extends ControllerBase
                                             drupal_set_message($this->t('The social network account has been unlinked from your account.'), 'status');
 
                                             // Add log.
-                                            \Drupal::logger('social_login')->notice('@name has unlinked a social network account, identity @identity_token.', array(
+                                            \Drupal::logger('social_login')->notice('@name has unlinked a social network account, identity @identity_token.', [
                                                 '@name' => $user->getAccountName(),
                                                 '@identity_token' => $identity_token
-                                            ));
+                                            ]);
                                         }
 
                                         // Clear session.
@@ -228,16 +219,16 @@ class SocialLoginCore extends ControllerBase
                                     if ($data['plugin']['data']['action'] == 'link_identity')
                                     {
                                         social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
-                                        drupal_set_message($this->t('The @social_network account has been linked to your account.', array(
+                                        drupal_set_message($this->t('The @social_network account has been linked to your account.', [
                                             '@social_network' => $provider_name
-                                        )), 'status');
+                                        ]), 'status');
 
                                         // Add log.
-                                        \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', array(
+                                        \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
                                             '@name' => $user->getAccountName(),
                                             '@provider' => $provider_name,
                                             '@identity_token' => $identity_token
-                                        ));
+                                        ]);
                                     }
                                     // Unlink identity.
                                     else
@@ -384,7 +375,7 @@ class SocialLoginCore extends ControllerBase
                                         }
 
                                         // Real user accounts get the authenticated user role.
-                                        $user_roles = array();
+                                        $user_roles = []
 
                                         // Make sure at least one module implements our hook.
                                         if (count(\Drupal::moduleHandler()->getImplementations('social_login_default_user_roles')) > 0)
@@ -394,14 +385,14 @@ class SocialLoginCore extends ControllerBase
                                         }
 
                                         // Setup the user fields.
-                                        $user_fields = array(
+                                        $user_fields = [
                                             'name' => $user_login,
                                             'mail' => $user_email,
                                             'pass' => $user_password,
                                             'status' => $user_status,
                                             'init' => $user_email,
                                             'roles' => $user_roles
-                                        );
+                                        ];
 
                                         // Create a new user.
                                         $account = User::create($user_fields);
@@ -411,11 +402,11 @@ class SocialLoginCore extends ControllerBase
                                         if ($account !== false)
                                         {
                                             // Add log.
-                                            \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', array(
+                                            \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', [
                                                 '@name' => $user_login,
                                                 '@provider' => $provider_name,
                                                 '@identity_token' => $identity_token
-                                            ));
+                                            ]);
 
                                             // Disable Drupal legacy registration.
                                             $registration_method = 'auto';
@@ -436,25 +427,25 @@ class SocialLoginCore extends ControllerBase
                                                     if ($user_status == 1)
                                                     {
                                                         _user_mail_notify('register_no_approval_required', $user);
-                                                        drupal_set_message($this->t('You have successfully created an account and linked it with your @social_network account.', array(
+                                                        drupal_set_message($this->t('You have successfully created an account and linked it with your @social_network account.', [
                                                             '@social_network' => $provider_name
-                                                        )), 'status');
+                                                        ]), 'status');
                                                     }
                                                     // Approval required.
                                                     else
                                                     {
                                                         $a = _user_mail_notify('register_pending_approval', $user);
-                                                        drupal_set_message($this->t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.<br />You will receive an email once your account has been approved and you can then login with your @social_network account.', array(
+                                                        drupal_set_message($this->t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.<br />You will receive an email once your account has been approved and you can then login with your @social_network account.', [
                                                             '@social_network' => $provider_name
-                                                        )), 'status');
+                                                        ]), 'status');
                                                     }
                                                 }
                                                 // Random email used.
                                                 else
                                                 {
-                                                    drupal_set_message($this->t('You have successfully created an account and linked it with your @social_network account.', array(
+                                                    drupal_set_message($this->t('You have successfully created an account and linked it with your @social_network account.', [
                                                         '@social_network' => $provider_name
-                                                    )), 'status');
+                                                    ]), 'status');
                                                 }
                                             }
                                             // For some reason we could not log the user in.
