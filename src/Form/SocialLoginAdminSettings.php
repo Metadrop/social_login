@@ -231,161 +231,160 @@ class SocialLoginAdminSettings extends ConfigFormBase {
       '#type' => 'select',
       '#title' => t('Social Login Icons'),
       '#description' => t('Allows the users to link a social network account to their regular account.'),
-      '#options' => array(
+      '#options' => [
         'above' => t('Show the Social Login icons above the profile settings'),
         'below' => t('Show the Social Login icons below the profile settings (Default, recommended)'),
         'disable' => t('Do not show the Social Login icons on the profile page'),
-      ),
+      ],
       '#default_value' => (empty($settings['profile_page_icons']) ? 'below' : $settings['profile_page_icons']),
     );
 
-    $form['social_login_settings_profile_page']['profile_page_caption'] = array(
+    $form['social_login_settings_profile_page']['profile_page_caption'] = [
       '#type' => 'textfield',
       '#title' => t('Social Login Icons: Caption [Leave empty for none]'),
       '#default_value' => (!isset($settings['profile_page_caption']) ? t('Link your account to a social network') : $settings['profile_page_caption']),
       '#size' => 60,
       '#maxlength' => 60,
       '#description' => t('This is the title displayed above the social network icons.'),
-    );
+    ];
 
     // Account creation settings.
-    $form['social_login_settings_account_creation'] = array(
+    $form['social_login_settings_account_creation'] = [
       '#type' => 'fieldset',
       '#title' => t('Account creation settings'),
-    );
+    ];
 
-    $form['social_login_settings_account_creation']['registration_approval'] = array(
+    $form['social_login_settings_account_creation']['registration_approval'] = [
       '#type' => 'select',
       '#title' => t('Do user that register with Social Login have to be approved by an administrator?'),
       '#description' => t('Manual approval should not be required as Social Login eliminates SPAM issues almost entirely.'),
-      '#options' => array(
+      '#options' => [
         'inherit' => t('Use the system-wide setting from the Drupal account settings (Default)'),
         'disable' => t('Automatically approve users that register with Social Login'),
         'enable' => t('Always require administrators to approve users that register with Social Login'),
-      ),
+      ],
       '#default_value' => (empty($settings['registration_approval']) ? 'inherit' : $settings['registration_approval']),
-    );
+    ];
 
-    $form['social_login_settings_account_creation']['registration_retrieve_avatars'] = array(
+    $form['social_login_settings_account_creation']['registration_retrieve_avatars'] = [
       '#type' => 'select',
       '#title' => t('Retrieve the user picture from the social network when a user registers with Social Login?'),
       '#description' => t('Social Login grabs the user picture from the social network, saves it locally and uses it as avatar for the new account.'),
-      '#options' => array(
+      '#options' => [
         'enable' => t('Yes, retrieve the user picture from the social network and use it as avatar for the user (Default)'),
         'disable' => t('No, do not retrieve the user picture from the social network'),
-      ),
+      ],
       '#default_value' => (empty($settings['registration_retrieve_avatars']) ? 'enable' : $settings['registration_retrieve_avatars']),
-    );
+    ];
 
-    $form['social_login_settings_account_creation']['registration_method'] = array(
+    $form['social_login_settings_account_creation']['registration_method'] = [
       '#type' => 'select',
       '#title' => t('Automatically create a new user account when a user registers with Social Login?'),
       '#description' => t('If a user registers for example with Facebook, Social Login grabs his Facebook profile data and uses it to simply the user registration.'),
-      '#options' => array(
+      '#options' => [
         'manual' => t('Do not create new accounts automatically, just pre-populate the default registration form and let users complete the registration manually (Default)'),
         'auto_random_email' => t('Automatically create new user accounts and generate a bogus email address if the social network provides no email address'),
         'auto_manual_email' => t('Automatically create new user accounts BUT fall back to the default registration form when the social network provides no email address'),
-      ),
+      ],
       '#default_value' => (empty($settings['registration_method']) ? 'manual' : $settings['registration_method']),
-    );
+    ];
 
     // Redirection settings.
-    $form['social_login_settings_redirection'] = array(
+    $form['social_login_settings_redirection'] = [
         '#type' => 'fieldset',
         '#title' => t('Redirection settings'),
-    );
+    ];
 
-    $form['social_login_settings_redirection']['redirect_login_path'] = array(
+    $form['social_login_settings_redirection']['redirect_login_path'] = [
         '#type' => 'select',
         '#default_value' => (empty($settings['redirect_login_path']) ? 'home' : $settings['redirect_login_path']),
         '#title' => t('When existing users login with Social Login ...'),
-        '#options' => array(
+        '#options' => [
             'home' => t('... redirect them to the homepage (Default)'),
             'same' => t('... redirect them back to the same page'),
             'custom' => t('... redirect them to the url below:'),
-        ),
-    );
+        ],
+    ];
 
-    $form['social_login_settings_redirection']['redirect_login_custom_uri'] = array(
+    $form['social_login_settings_redirection']['redirect_login_custom_uri'] = [
         '#type' => 'textfield',
         '#default_value' => (!isset($settings['redirect_login_custom_uri']) ? '' : $settings['redirect_login_custom_uri']),
         '#size' => 100,
         '#maxlength' => 100,
         '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
-    );
+    ];
 
-
-    $form['social_login_settings_redirection']['redirect_register_path'] = array(
+    $form['social_login_settings_redirection']['redirect_register_path'] = [
         '#type' => 'select',
         '#default_value' => (empty($settings['redirect_register_path']) ? 'home' : $settings['redirect_login_path']),
         '#title' => t('When new users signup with Social Login ...'),
-        '#options' => array(
+        '#options' => [
             'home' => t('... redirect them to the homepage (Default)'),
             'same' => t('... redirect them back to the same page'),
             'custom' => t('... redirect them to the url below:'),
-        ),
-    );
+        ],
+    ];
 
-    $form['social_login_settings_redirection']['redirect_register_custom_uri'] = array(
+    $form['social_login_settings_redirection']['redirect_register_custom_uri'] = [
         '#type' => 'textfield',
         '#default_value' => (!isset($settings['redirect_register_custom_uri']) ? '' : $settings['redirect_register_custom_uri']),
         '#size' => 100,
         '#maxlength' => 100,
         '#description' => t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
-    );
+    ];
 
     // Enable the social networks/identity providers.
-    $form['social_login_providers'] = array(
+    $form['social_login_providers'] = [
       '#type' => 'fieldset',
       '#title' => t('Enable the social networks/identity providers of your choice'),
-    );
+    ];
 
     // Include the list of providers.
     $social_login_available_providers = \social_login_get_available_providers();
 
     // Add providers.
     foreach ($social_login_available_providers as $key => $provider_data) {
-      $form['social_login_providers']['social_login_icon_' . $key] = array(
+      $form['social_login_providers']['social_login_icon_' . $key] = [
         '#title' => Html::escape($provider_data['name']),
         '#type' => 'container',
-        '#attributes' => array(
-          'class' => array(
+        '#attributes' => [
+          'class' => [
             'social_login_provider',
             'social_login_provider_' . $key,
-          ),
-          'style' => array(
+          ],
+          'style' => [
             'float: left;',
             'margin: 5px;',
-          ),
-        ),
-      );
+          ],
+        ],
+      ];
 
-      $form['social_login_providers']['provider_' . $key] = array(
+      $form['social_login_providers']['provider_' . $key] = [
         '#type' => 'checkbox',
         '#title' => Html::escape($provider_data['name']),
         '#default_value' => (empty($settings['provider_' . $key]) ? 0 : 1),
-        '#attributes' => array(
-          'style' => array(
+        '#attributes' => [
+          'style' => [
             'margin: 15px;',
-          ),
-        ),
-      );
+          ],
+        ],
+      ];
 
-      $form['social_login_providers']['clear_' . $key] = array(
+      $form['social_login_providers']['clear_' . $key] = [
         '#type' => 'container',
-        '#attributes' => array(
-          'style' => array(
+        '#attributes' => [
+          'style' => [
             'clear: both;',
-          ),
-        ),
-      );
+          ],
+        ],
+      ];
     }
 
     $form['actions']['#type'] = 'actions';
-    $form['actions']['submit'] = array(
+    $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => t('Save Settings'),
-    );
+    ];
 
     return $form;
   }
@@ -471,10 +470,10 @@ function ajax_api_connection_autodetect($form, FormStateInterface $form_state) {
   if (!empty($http_handler)) {
     $form['social_login_api_connection']['http_handler']['#value'] = $http_handler;
     $form['social_login_api_connection']['http_protocol']['#value'] = $http_protocol;
-    drupal_set_message(t('Autodetected @handler on port @port - do not forget to save your changes!', array(
+    drupal_set_message(t('Autodetected @handler on port @port - do not forget to save your changes!', [
       '@handler' => ($http_handler == 'curl' ? 'PHP cURL' : 'PHP fsockopen'),
       '@port' => ($http_protocol == 'http' ? '80/HTTP' : '443/HTTPS'),
-    )), 'status social_login');
+    ]), 'status social_login');
   }
   // Nothing works.
   else {
@@ -524,10 +523,10 @@ function ajax_check_api_connection_settings($form, FormStateInterface $form_stat
 
       // Build API Settings.
       $api_domain = $protocol . '://' . $api_subdomain . '.api.oneall.com/tools/ping.json';
-      $api_options = array(
+      $api_options = [
         'api_key' => $api_key,
         'api_secret' => $api_secret,
-      );
+      ];
 
       // Send request.
       $result = \social_login_do_api_request($handler, $api_domain, $api_options);

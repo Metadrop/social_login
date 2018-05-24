@@ -26,7 +26,7 @@ class SocialLoginBlockForm extends FormBase
      */
     public function getEditableConfigNames()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -57,15 +57,15 @@ class SocialLoginBlockForm extends FormBase
         $current_uri = \social_login_get_current_url($is_https);
 
         // Build callback url.
-        $callback_uri = Url::fromRoute('social_login.core', [], array(
+        $callback_uri = Url::fromRoute('social_login.core', [], [
             'absolute' => true,
-            'query' => array(
+            'query' => [
                 'origin' => $current_uri
-            )
-        ))->toString();
+            ]
+        ])->toString();
 
         // Social login form.
-        $form['social_login'] = array(
+        $form['social_login'] = [
             '#theme' => 'provider_container',
             '#label' => $settings['login_page_caption'],
             '#weight' => 0,
@@ -75,12 +75,12 @@ class SocialLoginBlockForm extends FormBase
             '#token' => '',
             '#callbackuri' => $callback_uri,
             // The cache tag is the callback uri (redirect to the same page).
-            '#cache' => array(
-                'contexts' => array(
+            '#cache' => [
+                'contexts' => [
                     'url'
-                )
-            )
-        );
+                ]
+            ]
+        ];
 
         // Prevent caching.
         $renderer = \Drupal::service('renderer');
