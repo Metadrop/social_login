@@ -11,7 +11,7 @@
         }
     ],
     "support": {
-        "issues": "https://support.oneall.com/",
+        "issues": "https://support.oneall.com/"
     },
     "require": {
         "php" : "~5.4|~7.0"

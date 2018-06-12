@@ -122,7 +122,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     ];
 
     // API Subdomain.
-    $form['social_login_api_settings']['api_subdomain'] = []
+    $form['social_login_api_settings']['api_subdomain'] = [
       '#id' => 'api_subdomain',
       '#type' => 'textfield',
       '#title' => $this->t('API Subdomain'),
@@ -189,7 +189,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
       '#default_value' => (!isset($settings['login_page_caption']) ? $this->t('Login with:') : $settings['login_page_caption']),
       '#size' => 60,
       '#maxlength' => 60,
-      '#description' => $this->$this->t('This is the title displayed above the social network icons.'),
+      '#description' => $this->t('This is the title displayed above the social network icons.'),
     ];
 
     // Registration page settings.
@@ -314,7 +314,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
 
     $form['social_login_settings_redirection']['redirect_register_path'] = [
         '#type' => 'select',
-        '#default_value' => (empty($settings['redirect_register_path']) ? 'home' : $settings['redirect_login_path']),
+        '#default_value' => (empty($settings['redirect_register_path']) ? 'home' : $settings['redirect_register_path']),
         '#title' => $this->t('When new users signup with Social Login ...'),
         '#options' => [
             'home' => $this->t('... redirect them to the homepage (Default)'),
@@ -395,44 +395,70 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     // Remove Drupal stuff.
     $form_state->cleanValues();
 
-    // Save values.
-    foreach ($form_state->getValues() as $setting => $value) {
+    // Settings
+    $settings = $form_state->getValues();
 
-      $value = trim($value);
-
-      // API Subdomain.
-      if ($setting == 'api_subdomain') {
+    // API Subdomain.
+    if ( ! empty ($settings['subdomain'])) {
         // The subdomain is always in lower-case.
-        $value = strtolower($value);
+        $settings['subdomain'] = strtolower(trim($settings['subdomain']));
 
         // Wrapper for full domains.
-        if (preg_match("/([a-z0-9\-]+)\.api\.oneall\.com/i", $value, $matches)) {
-          $value = trim($matches[1]);
+        if (preg_match("/([a-z0-9\-]+)\.api\.oneall\.com/i", $settings['subdomain'], $matches)) {
+            $settings['subdomain'] = trim($matches[1]);
         }
-      }
+    }
 
-      $oaslsid = db_select('oneall_social_login_settings', 'o')->fields('o', [
-        'oaslsid',
-      ])->condition('setting', $setting, '=')->execute()->fetchField();
+    // Redirection \ signin.
+    if ( ! empty ($settings['redirect_login_path'])) {
+        if ($settings['redirect_login_path'] != 'custom') {
+            $settings['redirect_login_custom_uri'] = '';
+        } else {
+            if (empty ($settings['redirect_login_custom_uri'])) {
+                $settings['redirect_login_path'] = 'home';
+            }
+        }
+    }
+
+    // Redirection \ signup.
+    if ( ! empty ($settings['redirect_register_path'])) {
+        if ($settings['redirect_register_path'] != 'custom') {
+            $settings['redirect_register_custom_uri'] = '';
+        } else {
+            if (empty ($settings['redirect_register_custom_uri'])) {
+                $settings['redirect_register_path'] = 'home';
+            }
+        }
+    }
+
+    // Save values.
+    foreach ($settings AS $setting => $value) {
+
+      // Clean.
+      $value = trim($value);
+
+      // Check if settings already exists.
+      $oaslsid = db_select('oneall_social_login_settings', 'o')->fields('o', ['oaslsid',])->condition('setting', $setting, '=')->execute()->fetchField();
       if (is_numeric($oaslsid)) {
-        db_update('oneall_social_login_settings')->fields([
-          'value' => $value,
-        ])->condition('oaslsid', $oaslsid, '=')->execute();
+        // Update setting.
+        db_update('oneall_social_login_settings')->fields(['value' => $value])->condition('oaslsid', $oaslsid, '=')->execute();
       }
       else {
-        db_insert('oneall_social_login_settings')->fields([
-          'setting' => $setting,
-          'value' => $value,
-        ])->execute();
+        // Add setting.
+        db_insert('oneall_social_login_settings')->fields(['setting' => $setting, 'value' => $value])->execute();
       }
     }
     drupal_set_message(t('Settings saved successfully'), 'status social_login');
 
-    // Clear Cache.
+    // Clear cache.
     \Drupal::cache()->deleteAll();
   }
 
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// AJAX CALLBACKS
+///////////////////////////////////////////////////////////////////////////////
 
 /**
  * Form callback to autodetect the API connection handler.
@@ -506,7 +532,7 @@ function ajax_check_api_connection_settings($form, FormStateInterface $form_stat
 
   // Some fields are empty.
   if (empty($api_subdomain) || empty($api_key) || empty($api_secret)) {
-    $error_message = $this->t('Please fill out each of the fields below');
+    $error_message = t('Please fill out each of the fields below');
   }
   // All fields have been filled out.
   else {
@@ -533,28 +559,28 @@ function ajax_check_api_connection_settings($form, FormStateInterface $form_stat
       // Send request.
       $result = \social_login_do_api_request($handler, $api_domain, $api_options);
       if (!is_array($result)) {
-        $error_message = $this->t('Could not contact API. Your firewall probably blocks outoing requests on both ports (443 and 80)');
+        $error_message = t('Could not contact API. Your firewall probably blocks outoing requests on both ports (443 and 80)');
       }
       else {
         switch ($result['http_code']) {
           case '401':
-            $error_message = $this->t('The API credentials are wrong!');
+            $error_message = t('The API credentials are wrong!');
             break;
 
           case '404':
-            $error_message = $this->t('The subdomain does not exist. Have you filled it out correctly?');
+            $error_message = t('The subdomain does not exist. Have you filled it out correctly?');
             break;
 
           case '200':
-            $success_message = $this->t('The settings are correct - do not forget to save your changes!');
+            $success_message = t('The settings are correct - do not forget to save your changes!');
             break;
 
           case 'n/a':
-            $error_message = is_null($result['http_data']) ? $this->t('Unknown API Error') : htmlspecialchars($result['http_data']);
+            $error_message = is_null($result['http_data']) ? t('Unknown API Error') : htmlspecialchars($result['http_data']);
             break;
 
           default:
-            $error_message = $this->t('Unknown API Error');
+            $error_message = t('Unknown API Error');
             break;
         }
       }

@@ -34,6 +34,6 @@ class SocialLoginBlock extends BlockBase {
    * Returns the Social Login Block.
    */
   public function build() {
-    return \Drupal::formBuilder()->getForm('Drupal\social_login\Form\SocialLoginBlockForm');
+    return \Drupal::formBuilder()->getForm('Drupal\social_login\Form\SocialLoginBlock');
   }
 }

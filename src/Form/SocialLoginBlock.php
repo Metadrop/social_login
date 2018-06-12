@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Builds the form for the Social Login block.
  */
-class SocialLoginBlockForm extends FormBase
+class SocialLoginBlock extends FormBase
 {
     /**
      * Determines the ID of the form.
@@ -57,7 +57,7 @@ class SocialLoginBlockForm extends FormBase
         $current_uri = \social_login_get_current_url($is_https);
 
         // Build callback url.
-        $callback_uri = Url::fromRoute('social_login.core', [], [
+        $callback_uri = Url::fromRoute('social_login.controller', [], [
             'absolute' => true,
             'query' => [
                 'origin' => $current_uri
