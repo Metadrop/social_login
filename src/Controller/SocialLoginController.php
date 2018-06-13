@@ -5,8 +5,6 @@ namespace Drupal\social_login\Controller;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
-use Drupal\user\Entity\User;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Contains the callback handler used by the OneAll Social Login Module.
@@ -88,9 +86,7 @@ class SocialLoginController extends ControllerBase
                         {
                             // Save the social network data in a session.
                             $_SESSION['social_login_session_open'] = 1;
-                            $_SESSION['social_login_session_time'] = time();
                             $_SESSION['social_login_social_data'] = serialize($social_data);
-                            $_SESSION['social_login_origin'] = (!empty($_GET['origin']) ? $_GET['origin'] : '');
 
                             // Unique user_token.
                             $user_token = $data['user']['user_token'];
@@ -418,7 +414,7 @@ class SocialLoginController extends ControllerBase
                                             ];
 
                                             // Create a new user.
-                                            $account = User::create($user_fields);
+                                            $account = \Drupal\user\Entity\User::create($user_fields);
                                             $account->save();
 
                                             // The new account has been created correctly.
@@ -439,7 +435,7 @@ class SocialLoginController extends ControllerBase
                                                 {
 
                                                     // Loads a user object.
-                                                    $user = User::load($uid);
+                                                    $user = \Drupal\user\Entity\User::load($uid);
 
                                                     // Login.
                                                     user_login_finalize($user);
@@ -474,36 +470,44 @@ class SocialLoginController extends ControllerBase
                                                     // Random email used.
                                                     else
                                                     {
-                                                        drupal_set_message($this->t('You have successfully created an account and linked it with your @social_network account.', [
-                                                            '@social_network' => $provider_name
+                                                        // Add user message.
+                                                        drupal_set_message($this->t('You have successfully created an account and linked it with your @provider account.', [
+                                                            '@provider' => $provider_name
                                                         ]), 'status');
 
-                                                        // Redirect
+                                                        // Redirect.
                                                         return social_login_redirect ('settings.register', $uid);
                                                     }
                                                 }
                                                 // For some reason we could not log the user in.
                                                 else
                                                 {
-
                                                     // Add user message.
                                                     drupal_set_message($this->t('Error while logging you in, please try to login manually.'), 'error');
 
-                                                    // Add log.
-                                                    \Drupal::logger('social_login')->error('Unable to automatically login in the user.');
+                                                    // Add system log.
+                                                    \Drupal::logger('social_login')->error('Could not create login user @name. User tried to registered using @provider (@identity_token).', [
+                                                        '@name' => $user_login,
+                                                        '@provider' => $provider_name,
+                                                        '@identity_token' => $identity_token
+                                                    ]);
 
                                                     // Redirect to login page to login manually.
                                                     return social_login_redirect ('drupal.login');
                                                 }
                                             }
                                             // An error occured during user_save().
-                                            else {
-
+                                            else
+                                            {
                                                 // Add user message.
                                                 drupal_set_message($this->t('Error while creating your user account, please try to register manually.'), 'error');
 
-                                                // Add log.
-                                                \Drupal::logger('social_login')->error('Unable to automatically register the new user.');
+                                                // Add system log.
+                                                \Drupal::logger('social_login')->error('Could not save account for user @name. User tried to registered using @provider (@identity_token).', [
+                                                    '@name' => $user_login,
+                                                    '@provider' => $provider_name,
+                                                    '@identity_token' => $identity_token
+                                                ]);
 
                                                 // Redirect to registration page to register manually.
                                                 return social_login_redirect ('drupal.register');

@@ -8,7 +8,6 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
 
@@ -447,10 +446,8 @@ function social_login_user_insert($account) {
  */
 function social_login_user_login($account) {
 
-  // Check if we come from a valid session.
-  if (isset($_SESSION))
-  {
-      if (!empty($_SESSION['social_login_session_open']) && !empty($_SESSION['social_login_social_data'])) {
+    // Check if we come from a valid session.
+    if (isset($_SESSION) && !empty($_SESSION['social_login_session_open']) && !empty($_SESSION['social_login_social_data'])) {
 
         // Restore data.
         $social_data = @unserialize($_SESSION['social_login_social_data']);
@@ -468,13 +465,10 @@ function social_login_user_login($account) {
           $identity_token = $user_data['identity']['identity_token'];
 
           // Social Network used to connect.
-          $provider_name = $user_data['identity']['source']['name'];
+          $provider = $user_data['identity']['source']['name'];
 
           // Check if token is already linked.
           $uid = social_login_get_uid_for_user_token($user_token);
-
-          // Clear session.
-          social_login_clear_session();
 
           // Already linked.
           if ($uid !== FALSE)
@@ -483,25 +477,28 @@ function social_login_user_login($account) {
             if ($account->id() != $uid)
             {
               // Add user message.
-              drupal_set_message(t('Sorry, but this @social_network account is already linked to another user on this website.', ['@social_network' => $provider_name]), 'error');
+              drupal_set_message(t('Sorry, but this @provider account is already linked to another user on this website.', [
+                  '@provider' => $provider
+              ]), 'error');
             }
           }
           // Not linked.
           else
           {
             // Link to this user.
-            if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider_name))
+            if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider))
             {
               // Add user message.
-              drupal_set_message(t('Your @social_network account has been linked to your account. You may now use @social_network to login.', ['@social_network' => $provider_name]), 'status');
+              drupal_set_message(t('Your @provider account has been linked to your account. You may now use @provider to login.', [
+                  '@provider' => $provider
+              ]), 'status');
             }
           }
         }
 
         // Clear session.
         social_login_clear_session();
-     }
-  }
+    }
 }
 
 /**
@@ -929,7 +926,7 @@ function social_login_redirect ($target = '', $data = '')
     }
 
     // Redirect.
-    return new RedirectResponse($redirect_to);
+    return new Symfony\Component\HttpFoundation\RedirectResponse($redirect_to);
 }
 
 /**
