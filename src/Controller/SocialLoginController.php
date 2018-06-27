@@ -360,6 +360,12 @@ class SocialLoginController extends ControllerBase
                                                 $user_login = trim($user_first_name . ' ' . $user_last_name);
                                             }
 
+                                            // The username cannot begin/end with a space.
+                                            $user_login = trim ($user_login);
+
+                                            // The username cannot contain multiple spaces in a row.
+                                            $user_login = preg_replace('!\s+!', ' ', $user_login);
+
                                             // Forge unique username.
                                             if (strlen(trim($user_login)) == 0 || social_login_get_uid_for_name(trim($user_login)) !== false)
                                             {
@@ -370,6 +376,7 @@ class SocialLoginController extends ControllerBase
                                                     $user_login = $provider_name . $this->t('User') . ($i++);
                                                 }
                                             }
+
 
                                             // Forge password.
                                             $user_password = user_password(8);
@@ -524,6 +531,13 @@ class SocialLoginController extends ControllerBase
                                     // Registration is disabled.
                                     else
                                     {
+                                        // Add system log.
+                                        \Drupal::logger('social_login')->error('Could not create account for user @name. Only admins may create accounts. User tried to registered using @provider (@identity_token).', [
+                                            '@name' => $user_login,
+                                            '@provider' => $provider_name,
+                                            '@identity_token' => $identity_token
+                                        ]);
+
                                         // Add user message.
                                         drupal_set_message($this->t('Only site administrators can create new user accounts.'), 'error');
 
