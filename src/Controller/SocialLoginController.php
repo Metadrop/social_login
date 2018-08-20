@@ -22,6 +22,11 @@ class SocialLoginController extends ControllerBase
         // No need to do anything if we haven't received these arguments.
         if (isset($_POST) && !empty($_POST['connection_token']) && !empty($_POST['oa_action']) && in_array($_POST['oa_action'], ['social_login', 'social_link']))
         {
+            // Add system log.
+            \Drupal::logger('social_login')->error('Callback handler called using connection_token @connection_token.', [
+                '@connection_token' => $_POST['connection_token']
+            ]);
+
             // Clear session.
             social_login_clear_session();
 
@@ -296,12 +301,21 @@ class SocialLoginController extends ControllerBase
                                         $user_email_is_verified = null;
                                         $user_email_is_random = null;
 
+                                        // Do we have any emails in the profile data?
                                         if (isset($identity['emails']) && is_array($identity['emails']))
                                         {
-                                            while (!$user_email_is_verified && (list(, $email) = each($identity['emails'])))
+                                            // Extract email address.
+                                            foreach ($identity['emails'] AS $email)
                                             {
-                                                $user_email = $email['value'];
-                                                $user_email_is_verified = (!empty($email['is_verified']));
+                                               $user_email = $email['value'];
+                                               $user_email_is_verified = (!empty($email['is_verified']) ? true : false);
+                                               $user_email_is_random = false;
+
+                                               // Stop once we have found a verified email address.
+                                               if ($user_email_is_verified)
+                                               {
+                                                   break;
+                                               }
                                             }
                                         }
 
@@ -377,7 +391,6 @@ class SocialLoginController extends ControllerBase
                                                 }
                                             }
 
-
                                             // Forge password.
                                             $user_password = user_password(8);
 
@@ -406,7 +419,7 @@ class SocialLoginController extends ControllerBase
                                             // Make sure at least one module implements our hook.
                                             if (count(\Drupal::moduleHandler()->getImplementations('social_login_default_user_roles')) > 0)
                                             {
-                                                // Call modules that implements the hook.
+                                                // Call modules that implement the hook.
                                                 $user_roles = \Drupal::moduleHandler()->invokeAll('social_login_default_user_roles', $user_roles);
                                             }
 
@@ -447,11 +460,11 @@ class SocialLoginController extends ControllerBase
                                                     // Login.
                                                     user_login_finalize($user);
 
-                                                    // Send email if it's not a random email.
+                                                    // Send email, but only if it's not a random address.
                                                     if ($user_email_is_random !== true)
                                                     {
 
-                                                        // No approval required.
+                                                        // No approval is required.
                                                         if ($user_status == 1)
                                                         {
                                                             _user_mail_notify('register_no_approval_required', $user);
@@ -462,7 +475,7 @@ class SocialLoginController extends ControllerBase
                                                             // Redirect
                                                             return social_login_redirect ('settings.register', $uid);
                                                         }
-                                                        // Approval required.
+                                                        // Approval is required.
                                                         else
                                                         {
                                                             _user_mail_notify('register_pending_approval', $user);
