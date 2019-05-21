@@ -81,13 +81,13 @@ class SocialLoginController extends ControllerBase
                     $social_data = Json::decode($data['http_data']);
 
                     // Everything seems to be ok.
-                    if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['request']['status']['code']))
+                    if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['result']['status']['code']))
                     {
                         // Retrieve the response data.
                         $data = $social_data['response']['result']['data'];
 
                         // Success
-                        if ($social_data['response']['request']['status']['code'] == 200)
+                        if ($social_data['response']['result']['status']['code'] == 200)
                         {
                             // Save the social network data in a session.
                             $_SESSION['social_login_session_open'] = 1;
@@ -380,15 +380,21 @@ class SocialLoginController extends ControllerBase
                                             // The username cannot contain multiple spaces in a row.
                                             $user_login = preg_replace('!\s+!', ' ', $user_login);
 
+                                            // Setup username.
+                                            if (strlen(trim($user_login)) == 0)
+                                            {
+                                                $user_login = $provider_name . $this->t('User');
+                                            }
+
                                             // Forge unique username.
-                                            if (strlen(trim($user_login)) == 0 || social_login_get_uid_for_name(trim($user_login)) !== false)
+                                            if (social_login_get_uid_for_name(trim($user_login)) !== false)
                                             {
                                                 $i = 1;
-                                                $user_login = $provider_name . $this->t('User');
-                                                while (social_login_get_uid_for_name($user_login) !== false)
+                                                while (social_login_get_uid_for_name($user_login.$i) !== false)
                                                 {
-                                                    $user_login = $provider_name . $this->t('User') . ($i++);
+                                                    $i++;
                                                 }
+                                                $user_login = $user_login.$i;
                                             }
 
                                             // Forge password.
