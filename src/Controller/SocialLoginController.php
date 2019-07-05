@@ -6,6 +6,10 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 
+use Drupal\social_login\Event\SocialLoginUserCreatedEvent;
+use Drupal\social_login\Event\SocialLoginUserLoginEvent;
+use Drupal\social_login\Event\SocialLoginUserLinkedEvent;
+
 /**
  * Contains the callback handler used by the OneAll Social Login Module.
  */
@@ -123,6 +127,11 @@ class SocialLoginController extends ControllerBase
                                         // Login the user.
                                         user_login_finalize($user_for_token);
 
+                                        // Dispatches SocialLoginUserLoginEvent event.
+                                        $event = new SocialLoginUserLoginEvent ($user_for_token, $data);
+                                        $event_dispatcher = \Drupal::service('event_dispatcher');
+                                        $event_dispatcher->dispatch(SocialLoginUserLoginEvent::EVENT_NAME, $event);
+
                                         // Clear session.
                                         social_login_clear_session();
 
@@ -146,11 +155,14 @@ class SocialLoginController extends ControllerBase
                                 elseif ($data['plugin']['key'] == 'social_link')
                                 {
                                     // The user must be logged in.
-                                    $user = \Drupal::currentUser();
+                                    $session = \Drupal::currentUser();
 
                                     // User is logged in.
-                                    if (is_object($user) && $user->isAuthenticated())
+                                    if (is_object($session) && $session->isAuthenticated())
                                     {
+                                        // Load user.
+                                        $user = \Drupal::entityTypeManager()->getStorage('user')->load($session->id());
+
                                         // The existing token does not match the current user!
                                         if ($user_for_token->id() != $user->id())
                                         {
@@ -165,19 +177,25 @@ class SocialLoginController extends ControllerBase
                                             if ($data['plugin']['data']['action'] == 'link_identity')
                                             {
                                                 // Add mapping.
-                                                social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
+                                                if (social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name))
+                                                {
+                                                    // Dispatches SocialLoginUserLinkedEvent event.
+                                                    $event = new SocialLoginUserLinkedEvent ($user, $data);
+                                                    $event_dispatcher = \Drupal::service('event_dispatcher');
+                                                    $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
 
-                                                // Add user message.
-                                                drupal_set_message($this->t('The @social_network account has been linked to your account.', [
-                                                    '@social_network' => $provider_name
-                                                ]), 'status');
+                                                    // Add user message.
+                                                    drupal_set_message($this->t('The @social_network account has been linked to your account.', [
+                                                        '@social_network' => $provider_name
+                                                    ]), 'status');
 
-                                                // Add log.
-                                                \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
-                                                    '@name' => $user->getAccountName(),
-                                                    '@provider' => $provider_name,
-                                                    '@identity_token' => $identity_token
-                                                ]);
+                                                    // Add log.
+                                                    \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
+                                                        '@name' => $user->getAccountName(),
+                                                        '@provider' => $provider_name,
+                                                        '@identity_token' => $identity_token
+                                                    ]);
+                                                }
                                             }
                                             // Unlink identity.
                                             else
@@ -230,28 +248,37 @@ class SocialLoginController extends ControllerBase
                                 if ($data['plugin']['key'] == 'social_link')
                                 {
                                     // The user should be logged in.
-                                    $user = \Drupal::currentUser();
+                                    $session = \Drupal::currentUser();
 
                                     // User is logged in.
-                                    if (is_object($user) && $user->isAuthenticated())
+                                    if (is_object($session) && $session->isAuthenticated())
                                     {
+                                        // Load user.
+                                        $user = \Drupal::entityTypeManager()->getStorage('user')->load($session->id());
+
                                         // Link identity.
                                         if ($data['plugin']['data']['action'] == 'link_identity')
                                         {
                                             // Add mapping.
-                                            social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name);
+                                            if (social_login_map_identity_token_to_user_token($user, $identity_token, $user_token, $provider_name))
+                                            {
+                                                // Dispatches SocialLoginUserLinkedEvent event.
+                                                $event = new SocialLoginUserLinkedEvent ($user, $data);
+                                                $event_dispatcher = \Drupal::service('event_dispatcher');
+                                                $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
 
-                                            // Add user message.
-                                            drupal_set_message($this->t('The @social_network account has been linked to your account.', [
-                                                '@social_network' => $provider_name
-                                            ]), 'status');
+                                                // Add user message.
+                                                drupal_set_message($this->t('The @social_network account has been linked to your account.', [
+                                                    '@social_network' => $provider_name
+                                                ]), 'status');
 
-                                            // Add log.
-                                            \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
-                                                '@name' => $user->getAccountName(),
-                                                '@provider' => $provider_name,
-                                                '@identity_token' => $identity_token
-                                            ]);
+                                                // Add log.
+                                                \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
+                                                    '@name' => $user->getAccountName(),
+                                                    '@provider' => $provider_name,
+                                                    '@identity_token' => $identity_token
+                                                ]);
+                                            }
                                         }
                                         // Unlink identity.
                                         else
@@ -446,6 +473,11 @@ class SocialLoginController extends ControllerBase
                                             // The new account has been created correctly.
                                             if ($account !== false)
                                             {
+                                                // Dispatches SocialLoginUserCreatedEvent event.
+                                                $event = new SocialLoginUserCreatedEvent ($account, $data);
+                                                $event_dispatcher = \Drupal::service('event_dispatcher');
+                                                $event_dispatcher->dispatch(SocialLoginUserCreatedEvent::EVENT_NAME, $event);
+
                                                 // Add log.
                                                 \Drupal::logger('social_login')->notice('@name has registered using @provider (@identity_token).', [
                                                     '@name' => $user_login,
@@ -459,12 +491,16 @@ class SocialLoginController extends ControllerBase
                                                 // Log the new user in.
                                                 if (($uid = \Drupal::service("user.auth")->authenticate($user_login, $user_password)) !== false)
                                                 {
-
                                                     // Loads a user object.
                                                     $user = \Drupal\user\Entity\User::load($uid);
 
                                                     // Login.
                                                     user_login_finalize($user);
+
+                                                    // Dispatches SocialLoginUserLoginEvent event.
+                                                    $event = new SocialLoginUserLoginEvent ($user, $data);
+                                                    $event_dispatcher = \Drupal::service('event_dispatcher');
+                                                    $event_dispatcher->dispatch(SocialLoginUserLoginEvent::EVENT_NAME, $event);
 
                                                     // Send email, but only if it's not a random address.
                                                     if ($user_email_is_random !== true)

@@ -4,12 +4,14 @@
  * @file
  * Contains the hook functions used by the OneAll Social Login Module.
  */
+use Drupal\social_login\Event\SocialLoginUserLinkedEvent;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
+
 
 /**
  * Implements hook_help().
@@ -370,22 +372,28 @@ function social_login_user_insert($account) {
     // Check format.
     if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['request']['status']['code']) && $social_data['response']['request']['status']['code'] == 200 && isset($social_data['response']['result']['data']['user'])) {
 
-      // Retrieve required data.
-      $user_data = $social_data['response']['result']['data']['user'];
+      // Social data.
+      $data = $social_data['response']['result']['data'];
 
       // Unique user_token.
-      $user_token = $user_data['user_token'];
+      $user_token = $data['user']['user_token'];
 
       // Unique identity_token.
-      $identity_token = $user_data['identity']['identity_token'];
+      $identity_token = $data['user']['identity']['identity_token'];
 
       // Social Network used to connect.
-      $provider_name = $user_data['identity']['source']['name'];
+      $provider_name = $data['user']['identity']['source']['name'];
 
       // Tie user to token.
       if (!empty($user_token) && !empty($identity_token) && !empty($provider_name))
       {
-        social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider_name);
+        if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider_name))
+        {
+            // Dispatches SocialLoginUserLinkedEvent event.
+            $event = new SocialLoginUserLinkedEvent ($account, $data);
+            $event_dispatcher = \Drupal::service('event_dispatcher');
+            $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
+        }
       }
 
       // Read the OneAll Settings.
@@ -463,17 +471,17 @@ function social_login_user_login($account) {
         // Check format.
         if (is_array($social_data) && isset($social_data['response']) && isset($social_data['response']['request']['status']['code']) && $social_data['response']['request']['status']['code'] == 200 && isset($social_data['response']['result']['data']['user'])) {
 
-          // Retrieve required data.
-          $user_data = $social_data['response']['result']['data']['user'];
+          // Social data.
+          $data = $social_data['response']['result']['data'];
 
           // Unique user_token.
-          $user_token = $user_data['user_token'];
+          $user_token = $data['user']['user_token'];
 
           // Unique identity_token.
-          $identity_token = $user_data['identity']['identity_token'];
+          $identity_token = $data['user']['identity']['identity_token'];
 
           // Social Network used to connect.
-          $provider = $user_data['identity']['source']['name'];
+          $provider = $data['user']['identity']['source']['name'];
 
           // Check if token is already linked.
           $uid = social_login_get_uid_for_user_token($user_token);
@@ -496,10 +504,15 @@ function social_login_user_login($account) {
             // Link to this user.
             if (social_login_map_identity_token_to_user_token($account, $identity_token, $user_token, $provider))
             {
-              // Add user message.
-              drupal_set_message(t('Your @provider account has been linked to your account. You may now use @provider to login.', [
-                  '@provider' => $provider
-              ]), 'status');
+                // Dispatches SocialLoginUserLinkedEvent event.
+                $event = new SocialLoginUserLinkedEvent ($account, $data);
+                $event_dispatcher = \Drupal::service('event_dispatcher');
+                $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
+
+                // Add user message.
+                drupal_set_message(t('Your @provider account has been linked to your account. You may now use @provider to login.', [
+                    '@provider' => $provider
+                ]), 'status');
             }
           }
         }
