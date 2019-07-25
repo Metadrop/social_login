@@ -27,7 +27,7 @@ class SocialLoginController extends ControllerBase
         if (isset($_POST) && !empty($_POST['connection_token']) && !empty($_POST['oa_action']) && in_array($_POST['oa_action'], ['social_login', 'social_link']))
         {
             // Add system log.
-            \Drupal::logger('social_login')->error('Callback handler called using connection_token @connection_token.', [
+            \Drupal::logger('social_login')->notice('Callback handler called using connection_token @connection_token.', [
                 '@connection_token' => $_POST['connection_token']
             ]);
 
