@@ -489,11 +489,8 @@ class SocialLoginController extends ControllerBase
                                                 $registration_method = 'auto';
 
                                                 // Log the new user in.
-                                                if (($uid = \Drupal::service("user.auth")->authenticate($user_login, $user_password)) !== false)
+                                                if (($user = \Drupal\user\Entity\User::load($account->id(), true)) != null)
                                                 {
-                                                    // Loads a user object.
-                                                    $user = \Drupal\user\Entity\User::load($uid);
-
                                                     // Login.
                                                     user_login_finalize($user);
 
@@ -509,30 +506,36 @@ class SocialLoginController extends ControllerBase
                                                         // No approval is required.
                                                         if ($user_status == 1)
                                                         {
+                                                            // Notif user.
                                                             _user_mail_notify('register_no_approval_required', $user);
+
+                                                            // Add message.
                                                             drupal_set_message($this->t('You have successfully created an account and linked it with your @social_network account.', [
                                                                 '@social_network' => $provider_name
                                                             ]), 'status');
 
-                                                            // Redirect
+                                                            // Redirect.
                                                             return social_login_redirect ('settings.register', $uid);
                                                         }
                                                         // Approval is required.
                                                         else
                                                         {
+                                                            // Notify user.
                                                             _user_mail_notify('register_pending_approval', $user);
+
+                                                            // Add message.
                                                             drupal_set_message($this->t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.<br />You will receive an email once your account has been approved and you can then login with your @social_network account.', [
                                                                 '@social_network' => $provider_name
                                                             ]), 'status');
 
-                                                            // Redirect
+                                                            // Redirect.
                                                             return social_login_redirect ('drupal.home');
                                                         }
                                                     }
                                                     // Random email used.
                                                     else
                                                     {
-                                                        // Add user message.
+                                                        // Add message.
                                                         drupal_set_message($this->t('You have successfully created an account and linked it with your @provider account.', [
                                                             '@provider' => $provider_name
                                                         ]), 'status');
@@ -541,14 +544,14 @@ class SocialLoginController extends ControllerBase
                                                         return social_login_redirect ('settings.register', $uid);
                                                     }
                                                 }
-                                                // For some reason we could not log the user in.
+                                                // For some reason we could not load the user.
                                                 else
                                                 {
                                                     // Add user message.
                                                     drupal_set_message($this->t('Error while logging you in, please try to login manually.'), 'error');
 
                                                     // Add system log.
-                                                    \Drupal::logger('social_login')->error('Could not create login user @name. User tried to registered using @provider (@identity_token).', [
+                                                    \Drupal::logger('social_login')->error('Could not load user @name. User tried to registered using @provider (@identity_token).', [
                                                         '@name' => $user_login,
                                                         '@provider' => $provider_name,
                                                         '@identity_token' => $identity_token
@@ -586,14 +589,14 @@ class SocialLoginController extends ControllerBase
                                     // Registration is disabled.
                                     else
                                     {
-                                        // Add system log.
+                                        // Add log.
                                         \Drupal::logger('social_login')->error('Could not create account for user @name. Only admins may create accounts. User tried to registered using @provider (@identity_token).', [
                                             '@name' => $user_login,
                                             '@provider' => $provider_name,
                                             '@identity_token' => $identity_token
                                         ]);
 
-                                        // Add user message.
+                                        // Add message.
                                         drupal_set_message($this->t('Only site administrators can create new user accounts.'), 'error');
 
                                         // Return to homepage.
