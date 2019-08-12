@@ -515,7 +515,7 @@ class SocialLoginController extends ControllerBase
                                                             ]), 'status');
 
                                                             // Redirect.
-                                                            return social_login_redirect ('settings.register', $uid);
+                                                            return social_login_redirect ('settings.register', $user->id());
                                                         }
                                                         // Approval is required.
                                                         else
@@ -541,7 +541,7 @@ class SocialLoginController extends ControllerBase
                                                         ]), 'status');
 
                                                         // Redirect.
-                                                        return social_login_redirect ('settings.register', $uid);
+                                                        return social_login_redirect ('settings.register', $user->id());
                                                     }
                                                 }
                                                 // For some reason we could not load the user.
