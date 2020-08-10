@@ -25,6 +25,12 @@ class SocialLoginBlock extends BlockBase {
 
   /**
    * Indicates whether the block should be shown.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   Instance of the user's account.
+   *
+   * @return \Drupal\Core\Access\AccessResult
+   *   Returns access result for the account.
    */
   public function blockAccess(AccountInterface $account) {
     return AccessResult::allowedIf($account->isAnonymous());
@@ -36,4 +42,5 @@ class SocialLoginBlock extends BlockBase {
   public function build() {
     return \Drupal::formBuilder()->getForm('Drupal\social_login\Form\SocialLoginBlock');
   }
+
 }

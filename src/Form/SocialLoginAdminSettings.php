@@ -2,6 +2,8 @@
 
 namespace Drupal\social_login\Form;
 
+use Drupal;
+use Drupal\Core\Database\Database;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Html;
@@ -46,7 +48,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     ];
 
     // Default value for handler.
-    if ($form_state->getValue(['http_handler',])) {
+    if ($form_state->getValue(['http_handler'])) {
       $default = $form_state->getValue([
         'http_handler',
       ]);
@@ -112,28 +114,26 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     ];
 
     // Existing account.
-    if ( ! empty ($settings['api_subdomain']))
-    {
-        $form['social_login_api_settings'] = [
-          '#type' => 'fieldset',
-          '#title' => $this->t('API Settings'),
-          '#id' => 'social_login_api_settings',
-          '#description' => $this->t('<br /><a href="@setup_social_login" target="_blank"><strong>Access API credentials</strong></a>', [
-            '@setup_social_login' => 'https://app.oneall.com/applications/',
-          ]),
-        ];
+    if (!empty($settings['api_subdomain'])) {
+      $form['social_login_api_settings'] = [
+        '#type' => 'fieldset',
+        '#title' => $this->t('API Settings'),
+        '#id' => 'social_login_api_settings',
+        '#description' => $this->t('<br /><a href="@setup_social_login" target="_blank"><strong>Access API credentials</strong></a>', [
+          '@setup_social_login' => 'https://app.oneall.com/applications/',
+        ]),
+      ];
     }
     // New account.
-    else
-    {
-        $form['social_login_api_settings'] = [
-            '#type' => 'fieldset',
-            '#title' => $this->t('API Settings'),
-            '#id' => 'social_login_api_settings',
-            '#description' => $this->t('<br /><a href="@setup_social_login" target="_blank" class="button button--primary"><strong>Create a free account and generate my API credentials</strong></a>', [
-                '@setup_social_login' => 'https://app.oneall.com/signup/dp',
-            ]),
-        ];
+    else {
+      $form['social_login_api_settings'] = [
+        '#type' => 'fieldset',
+        '#title' => $this->t('API Settings'),
+        '#id' => 'social_login_api_settings',
+        '#description' => $this->t('<br /><a href="@setup_social_login" target="_blank" class="button button--primary"><strong>Create a free account and generate my API credentials</strong></a>', [
+          '@setup_social_login' => 'https://app.oneall.com/signup/dp',
+        ]),
+      ];
     }
 
     // API Subdomain.
@@ -304,46 +304,46 @@ class SocialLoginAdminSettings extends ConfigFormBase {
 
     // Redirection settings.
     $form['social_login_settings_redirection'] = [
-        '#type' => 'fieldset',
-        '#title' => $this->t('Redirection settings'),
+      '#type' => 'fieldset',
+      '#title' => $this->t('Redirection settings'),
     ];
 
     $form['social_login_settings_redirection']['redirect_login_path'] = [
-        '#type' => 'select',
-        '#default_value' => (empty($settings['redirect_login_path']) ? 'home' : $settings['redirect_login_path']),
-        '#title' => $this->t('When existing users login with Social Login ...'),
-        '#options' => [
-            'home' => $this->t('... redirect them to the homepage (Default)'),
-            'same' => $this->t('... redirect them back to the same page'),
-            'custom' => $this->t('... redirect them to the url below:'),
-        ],
+      '#type' => 'select',
+      '#default_value' => (empty($settings['redirect_login_path']) ? 'home' : $settings['redirect_login_path']),
+      '#title' => $this->t('When existing users login with Social Login ...'),
+      '#options' => [
+        'home' => $this->t('... redirect them to the homepage (Default)'),
+        'same' => $this->t('... redirect them back to the same page'),
+        'custom' => $this->t('... redirect them to the url below:'),
+      ],
     ];
 
     $form['social_login_settings_redirection']['redirect_login_custom_uri'] = [
-        '#type' => 'textfield',
-        '#default_value' => (!isset($settings['redirect_login_custom_uri']) ? '' : $settings['redirect_login_custom_uri']),
-        '#size' => 100,
-        '#maxlength' => 100,
-        '#description' => $this->t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
+      '#type' => 'textfield',
+      '#default_value' => (!isset($settings['redirect_login_custom_uri']) ? '' : $settings['redirect_login_custom_uri']),
+      '#size' => 100,
+      '#maxlength' => 100,
+      '#description' => $this->t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
     ];
 
     $form['social_login_settings_redirection']['redirect_register_path'] = [
-        '#type' => 'select',
-        '#default_value' => (empty($settings['redirect_register_path']) ? 'home' : $settings['redirect_register_path']),
-        '#title' => $this->t('When new users signup with Social Login ...'),
-        '#options' => [
-            'home' => $this->t('... redirect them to the homepage (Default)'),
-            'same' => $this->t('... redirect them back to the same page'),
-            'custom' => $this->t('... redirect them to the url below:'),
-        ],
+      '#type' => 'select',
+      '#default_value' => (empty($settings['redirect_register_path']) ? 'home' : $settings['redirect_register_path']),
+      '#title' => $this->t('When new users signup with Social Login ...'),
+      '#options' => [
+        'home' => $this->t('... redirect them to the homepage (Default)'),
+        'same' => $this->t('... redirect them back to the same page'),
+        'custom' => $this->t('... redirect them to the url below:'),
+      ],
     ];
 
     $form['social_login_settings_redirection']['redirect_register_custom_uri'] = [
-        '#type' => 'textfield',
-        '#default_value' => (!isset($settings['redirect_register_custom_uri']) ? '' : $settings['redirect_register_custom_uri']),
-        '#size' => 100,
-        '#maxlength' => 100,
-        '#description' => $this->t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
+      '#type' => 'textfield',
+      '#default_value' => (!isset($settings['redirect_register_custom_uri']) ? '' : $settings['redirect_register_custom_uri']),
+      '#size' => 100,
+      '#maxlength' => 100,
+      '#description' => $this->t('You can use the placeholder {userid} in the URL. It is automatically replaced by the id of the user who has logged in.'),
     ];
 
     // Enable the social networks/identity providers.
@@ -410,60 +410,62 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     // Remove Drupal stuff.
     $form_state->cleanValues();
 
-    // Settings
+    // Settings.
     $settings = $form_state->getValues();
 
     // API Subdomain.
-    if ( ! empty ($settings['subdomain'])) {
-        // The subdomain is always in lower-case.
-        $settings['subdomain'] = strtolower(trim($settings['subdomain']));
+    if (!empty($settings['subdomain'])) {
+      // The subdomain is always in lower-case.
+      $settings['subdomain'] = strtolower(trim($settings['subdomain']));
 
-        // Wrapper for full domains.
-        if (preg_match("/([a-z0-9\-]+)\.api\.oneall\.com/i", $settings['subdomain'], $matches)) {
-            $settings['subdomain'] = trim($matches[1]);
-        }
+      // Wrapper for full domains.
+      if (preg_match("/([a-z0-9\-]+)\.api\.oneall\.com/i", $settings['subdomain'], $matches)) {
+        $settings['subdomain'] = trim($matches[1]);
+      }
     }
 
     // Redirection \ signin.
-    if ( ! empty ($settings['redirect_login_path'])) {
-        if ($settings['redirect_login_path'] != 'custom') {
-            $settings['redirect_login_custom_uri'] = '';
-        } else {
-            if (empty ($settings['redirect_login_custom_uri'])) {
-                $settings['redirect_login_path'] = 'home';
-            }
+    if (!empty($settings['redirect_login_path'])) {
+      if ($settings['redirect_login_path'] != 'custom') {
+        $settings['redirect_login_custom_uri'] = '';
+      }
+      else {
+        if (empty($settings['redirect_login_custom_uri'])) {
+          $settings['redirect_login_path'] = 'home';
         }
+      }
     }
 
     // Redirection \ signup.
-    if ( ! empty ($settings['redirect_register_path'])) {
-        if ($settings['redirect_register_path'] != 'custom') {
-            $settings['redirect_register_custom_uri'] = '';
-        } else {
-            if (empty ($settings['redirect_register_custom_uri'])) {
-                $settings['redirect_register_path'] = 'home';
-            }
+    if (!empty($settings['redirect_register_path'])) {
+      if ($settings['redirect_register_path'] != 'custom') {
+        $settings['redirect_register_custom_uri'] = '';
+      }
+      else {
+        if (empty($settings['redirect_register_custom_uri'])) {
+          $settings['redirect_register_path'] = 'home';
         }
+      }
     }
 
     // Save values.
-    foreach ($settings AS $setting => $value) {
+    foreach ($settings as $setting => $value) {
 
       // Clean.
       $value = trim($value);
 
       // Check if settings already exists.
-      $oaslsid = db_select('oneall_social_login_settings', 'o')->fields('o', ['oaslsid',])->condition('setting', $setting, '=')->execute()->fetchField();
+      $oaslsid = Database::getConnection()->select('oneall_social_login_settings', 'o')->fields('o', ['oaslsid'])->condition('setting', $setting, '=')->execute()->fetchField();
       if (is_numeric($oaslsid)) {
         // Update setting.
-        db_update('oneall_social_login_settings')->fields(['value' => $value])->condition('oaslsid', $oaslsid, '=')->execute();
+        Database::getConnection()->update('oneall_social_login_settings')->fields(['value' => $value])->condition('oaslsid', $oaslsid, '=')->execute();
       }
       else {
         // Add setting.
-        db_insert('oneall_social_login_settings')->fields(['setting' => $setting, 'value' => $value])->execute();
+        Database::getConnection()->insert('oneall_social_login_settings')->fields(['setting' => $setting, 'value' => $value])->execute();
       }
     }
-    drupal_set_message(t('Settings saved successfully'), 'status social_login');
+    $this->messenger->addMessage(t('Settings saved successfully'), 'status social_login');
 
     // Clear cache.
     \Drupal::cache()->deleteAll();
@@ -471,9 +473,9 @@ class SocialLoginAdminSettings extends ConfigFormBase {
 
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//
 // AJAX CALLBACKS
-///////////////////////////////////////////////////////////////////////////////
+// .
 
 /**
  * Form callback to autodetect the API connection handler.
@@ -485,26 +487,22 @@ function ajax_api_connection_autodetect($form, FormStateInterface $form_state) {
   $http_protocol = '';
 
   // CURL+HTTPS Works.
-  if (\social_login_check_curl('https'))
-  {
+  if (\social_login_check_curl('https')) {
     $http_handler = 'curl';
     $http_protocol = 'https';
   }
   // FSOCKOPEN+HTTPS Works.
-  elseif (\social_login_check_fsockopen('https'))
-  {
+  elseif (\social_login_check_fsockopen('https')) {
     $http_handler = 'fsockopen';
     $http_protocol = 'https';
   }
   // CURL+HTTP Works.
-  elseif (\social_login_check_curl('http'))
-  {
+  elseif (\social_login_check_curl('http')) {
     $http_handler = 'curl';
     $http_protocol = 'http';
   }
   // FSOCKOPEN+HTTP Works.
-  elseif (\social_login_check_fsockopen('http'))
-  {
+  elseif (\social_login_check_fsockopen('http')) {
     $http_handler = 'fsockopen';
     $http_protocol = 'http';
   }
@@ -513,14 +511,14 @@ function ajax_api_connection_autodetect($form, FormStateInterface $form_state) {
   if (!empty($http_handler)) {
     $form['social_login_api_connection']['http_handler']['#value'] = $http_handler;
     $form['social_login_api_connection']['http_protocol']['#value'] = $http_protocol;
-    drupal_set_message(t('Autodetected @handler on port @port - do not forget to save your changes!', [
+    Drupal::messenger()->addMessage(t('Autodetected @handler on port @port - do not forget to save your changes!', [
       '@handler' => ($http_handler == 'curl' ? 'PHP cURL' : 'PHP fsockopen'),
       '@port' => ($http_protocol == 'http' ? '80/HTTP' : '443/HTTPS'),
     ]), 'status social_login');
   }
   // Nothing works.
   else {
-    drupal_set_message(t('Sorry, but the autodetection failed. Please try to open port 80/443 for outbound requests and install PHP cURL/fsockopen.'), 'error social_login');
+    Drupal::messenger()->addMessage(t('Sorry, but the autodetection failed. Please try to open port 80/443 for outbound requests and install PHP cURL/fsockopen.'), 'error social_login');
   }
   return $form['social_login_api_connection'];
 }
@@ -559,7 +557,7 @@ function ajax_check_api_connection_settings($form, FormStateInterface $form_stat
 
     // Wrong syntax.
     if (!preg_match("/^[a-z0-9\-]+$/i", $api_subdomain)) {
-      $error_message = $this->t('The subdomain has a wrong syntax! Have you filled it out correctly?');
+      $error_message = t('The subdomain has a wrong syntax! Have you filled it out correctly?');
     }
     // Syntax seems to be OK.
     else {
@@ -604,10 +602,10 @@ function ajax_check_api_connection_settings($form, FormStateInterface $form_stat
 
   // Error.
   if (!empty($success_message)) {
-    drupal_set_message($success_message, 'status social_login');
+    Drupal::messenger()->addMessage($success_message, 'status social_login');
   }
   else {
-    drupal_set_message($error_message, 'error social_login');
+    Drupal::messenger()->addMessage($error_message, 'error social_login');
   }
   return $form['social_login_api_settings'];
 }
