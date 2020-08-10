@@ -1,8 +1,5 @@
 <?php
 
-use Drupal\Core\File\FileSystemInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Drupal\Core\Link;
 /**
  * @file
  * Contains the hook functions used by the OneAll Social Login Module.
