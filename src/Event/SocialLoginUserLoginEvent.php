@@ -3,7 +3,7 @@
 namespace Drupal\social_login\Event;
 
 use Drupal\user\Entity\User;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Class SocialLoginUserLoginEvent.
