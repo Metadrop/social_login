@@ -16,6 +16,7 @@ use Drupal\Core\Url;
 use Drupal\user\UserInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
 /**
@@ -963,7 +964,7 @@ function social_login_redirect ($target = '', $data = '')
     }
 
     // Redirect.
-    return new Symfony\Component\HttpFoundation\RedirectResponse($redirect_to);
+    return new RedirectResponse($redirect_to);
 }
 
 /**
