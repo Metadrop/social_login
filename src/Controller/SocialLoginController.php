@@ -85,7 +85,7 @@ class SocialLoginController extends ControllerBase {
 
         // User message.
         if (isset($message)) {
-          $this->messenger->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings', 'error'));
+          $this->messenger()->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings', 'error'));
         }
         // Add log.
         \Drupal::logger('social_login')->error('Unable to use Social Login, the API Settings are not filled out correctly.');
@@ -157,7 +157,7 @@ class SocialLoginController extends ControllerBase {
                   // The user is blocked.
                   else {
                     // User message.
-                    $this->messenger->addMessage($this->t('Your account is blocked.'), 'error');
+                    $this->messenger()->addMessage($this->t('Your account is blocked.'), 'error');
 
                     // Clear session.
                     social_login_clear_session();
@@ -178,7 +178,7 @@ class SocialLoginController extends ControllerBase {
 
                     // The existing token does not match the current user!
                     if ($user_for_token->id() != $user->id()) {
-                      $this->messenger->addMessage($this->t('This @social_network account is already linked to another user.', [
+                      $this->messenger()->addMessage($this->t('This @social_network account is already linked to another user.', [
                         '@social_network' => $provider_name,
                       ]), 'error');
                     }
@@ -194,7 +194,7 @@ class SocialLoginController extends ControllerBase {
                           $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
 
                           // Add user message.
-                          $this->messenger->addMessage($this->t('The @social_network account has been linked to your account.', [
+                          $this->messenger()->addMessage($this->t('The @social_network account has been linked to your account.', [
                             '@social_network' => $provider_name,
                           ]), 'status');
 
@@ -212,7 +212,7 @@ class SocialLoginController extends ControllerBase {
                         social_login_unmap_identity_token($identity_token);
 
                         // Add user message.
-                        $this->messenger->addMessage($this->t('The social network account has been unlinked from your account.'), 'status');
+                        $this->messenger()->addMessage($this->t('The social network account has been unlinked from your account.'), 'status');
 
                         // Add log.
                         \Drupal::logger('social_login')->notice('@name has unlinked a social network account, identity @identity_token.', [
@@ -236,7 +236,7 @@ class SocialLoginController extends ControllerBase {
                   }
                   // User is not logged in.
                   else {
-                    $this->messenger->addMessage($this->t('You must be logged in to perform this action.'), 'error');
+                    $this->messenger()->addMessage($this->t('You must be logged in to perform this action.'), 'error');
 
                     // Clear session.
                     social_login_clear_session();
@@ -268,7 +268,7 @@ class SocialLoginController extends ControllerBase {
                         $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
 
                         // Add user message.
-                        $this->messenger->addMessage($this->t('The @social_network account has been linked to your account.', [
+                        $this->messenger()->addMessage($this->t('The @social_network account has been linked to your account.', [
                           '@social_network' => $provider_name,
                         ]), 'status');
 
@@ -286,7 +286,7 @@ class SocialLoginController extends ControllerBase {
                       social_login_unmap_identity_token($identity_token);
 
                       // Add user message.
-                      $this->messenger->addMessage($this->t('The social network account has been unlinked from your account.'), 'status');
+                      $this->messenger()->addMessage($this->t('The social network account has been unlinked from your account.'), 'status');
                     }
 
                     // Clear session.
@@ -304,7 +304,7 @@ class SocialLoginController extends ControllerBase {
                   // User is not logged in.
                   else {
                     // Add user message.
-                    $this->messenger->addMessage($this->t('You must be logged in to perform this action.'), 'error');
+                    $this->messenger()->addMessage($this->t('You must be logged in to perform this action.'), 'error');
 
                     // Clear session.
                     social_login_clear_session();
@@ -484,7 +484,7 @@ class SocialLoginController extends ControllerBase {
                               _user_mail_notify('register_no_approval_required', $user);
 
                               // Add message.
-                              $this->messenger->addMessage($this->t('You have successfully created an account and linked it with your @social_network account.', [
+                              $this->messenger()->addMessage($this->t('You have successfully created an account and linked it with your @social_network account.', [
                                 '@social_network' => $provider_name,
                               ]), 'status');
 
@@ -497,7 +497,7 @@ class SocialLoginController extends ControllerBase {
                               _user_mail_notify('register_pending_approval', $user);
 
                               // Add message.
-                              $this->messenger->addMessage($this->t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.<br />You will receive an email once your account has been approved and you can then login with your @social_network account.', [
+                              $this->messenger()->addMessage($this->t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.<br />You will receive an email once your account has been approved and you can then login with your @social_network account.', [
                                 '@social_network' => $provider_name,
                               ]), 'status');
 
@@ -508,7 +508,7 @@ class SocialLoginController extends ControllerBase {
                           // Random email used.
                           else {
                             // Add message.
-                            $this->messenger->addMessage($this->t('You have successfully created an account and linked it with your @provider account.', [
+                            $this->messenger()->addMessage($this->t('You have successfully created an account and linked it with your @provider account.', [
                               '@provider' => $provider_name,
                             ]), 'status');
 
@@ -519,7 +519,7 @@ class SocialLoginController extends ControllerBase {
                         // For some reason we could not load the user.
                         else {
                           // Add user message.
-                          $this->messenger->addMessage($this->t('Error while logging you in, please try to login manually.'), 'error');
+                          $this->messenger()->addMessage($this->t('Error while logging you in, please try to login manually.'), 'error');
 
                           // Add system log.
                           \Drupal::logger('social_login')->error('Could not load user @name. User tried to registered using @provider (@identity_token).', [
@@ -535,7 +535,7 @@ class SocialLoginController extends ControllerBase {
                       // An error occured during user_save().
                       else {
                         // Add user message.
-                        $this->messenger->addMessage($this->t('Error while creating your user account, please try to register manually.'), 'error');
+                        $this->messenger()->addMessage($this->t('Error while creating your user account, please try to register manually.'), 'error');
 
                         // Add system log.
                         \Drupal::logger('social_login')->error('Could not save account for user @name. User tried to registered using @provider (@identity_token).', [
@@ -565,7 +565,7 @@ class SocialLoginController extends ControllerBase {
                     ]);
 
                     // Add message.
-                    $this->messenger->addMessage($this->t('Only site administrators can create new user accounts.'), 'error');
+                    $this->messenger()->addMessage($this->t('Only site administrators can create new user accounts.'), 'error');
 
                     // Return to homepage.
                     return social_login_redirect('drupal.home');
@@ -582,7 +582,7 @@ class SocialLoginController extends ControllerBase {
                   // Already linked.
                   if ($data['plugin']['data']['reason'] == 'identity_is_linked_to_another_user') {
                     // Add user message.
-                    $this->messenger->addMessage($this->t('This social network account is already linked to another user. First logout and then login with that social network account.'), 'error');
+                    $this->messenger()->addMessage($this->t('This social network account is already linked to another user. First logout and then login with that social network account.'), 'error');
 
                     // Redirect to previous page.
                     if (!empty($_GET['origin'])) {
@@ -600,7 +600,7 @@ class SocialLoginController extends ControllerBase {
           // Invalid response.
           else {
             // Add user message.
-            $this->messenger->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'), 'error');
+            $this->messenger()->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'), 'error');
 
             // Add log.
             \Drupal::logger('social_login')->error('Invalid RESPONSE received from OneAll API.');
@@ -611,7 +611,7 @@ class SocialLoginController extends ControllerBase {
         }
         else {
           // Add user message.
-          $this->messenger->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'), 'error');
+          $this->messenger()->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'), 'error');
 
           // Add log.
           \Drupal::logger('social_login')->error('Invalid JSON received from OneAll API.');
