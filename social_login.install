@@ -88,38 +88,28 @@ function social_login_schema() {
     ],
   ];
 
-  // Used to store module settings.
-  $schema['oneall_social_login_settings'] = [
-    'description' => 'Used to store module settings.',
-    'fields' => [
-      'oaslsid' => [
-        'description' => 'The primary key of this table.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ],
-      'setting' => [
-        'description' => 'The name of the setting.',
-        'type' => 'varchar',
-        'length' => '64',
-        'not null' => TRUE,
-      ],
-      'value' => [
-        'description' => 'The value of the setting.',
-        'type' => 'varchar',
-        'length' => '64',
-        'not null' => TRUE,
-      ],
-    ],
-    'indexes' => [
-      'setting' => [
-        'setting',
-      ],
-    ],
-    'primary key' => [
-      'oaslsid',
-    ],
-  ];
-
   return $schema;
+}
+
+/**
+ * Convert social_login settings to drupal config
+ */
+function social_login_update_8001() {
+  $connection = \Drupal::database();
+  $results = $connection->query("SELECT setting, value FROM {oneall_social_login_settings}");
+
+  // Unsure we have current element set to 0.
+  if (!isset($sandbox['current'])) {
+    $sandbox['current'] = 0;
+    $sandbox['total'] = count($results);
+  }
+
+  foreach ($results as $result) {
+    \Drupal::configFactory()->getEditable('social_login.settings')
+      ->set($result->setting, $result->value)
+      ->save();
+  }
+  $sandbox['current']++;
+
+  $sandbox['#finished'] = (float) $sandbox['total'] / (float) $sandbox['current'];
 }
