@@ -112,7 +112,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     ];
 
     // Existing account.
-    if (!empty ($settings['api_subdomain'])) {
+    if (!empty($settings['api_subdomain'])) {
       $form['social_login_api_settings'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('API Settings'),
@@ -412,7 +412,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     $settings = $form_state->getValues();
 
     // API Subdomain.
-    if (!empty ($settings['subdomain'])) {
+    if (!empty($settings['subdomain'])) {
       // The subdomain is always in lower-case.
       $settings['subdomain'] = strtolower(trim($settings['subdomain']));
 
@@ -423,24 +423,24 @@ class SocialLoginAdminSettings extends ConfigFormBase {
     }
 
     // Redirection \ signin.
-    if (!empty ($settings['redirect_login_path'])) {
+    if (!empty($settings['redirect_login_path'])) {
       if ($settings['redirect_login_path'] != 'custom') {
         $settings['redirect_login_custom_uri'] = '';
       }
       else {
-        if (empty ($settings['redirect_login_custom_uri'])) {
+        if (empty($settings['redirect_login_custom_uri'])) {
           $settings['redirect_login_path'] = 'home';
         }
       }
     }
 
     // Redirection \ signup.
-    if (!empty ($settings['redirect_register_path'])) {
+    if (!empty($settings['redirect_register_path'])) {
       if ($settings['redirect_register_path'] != 'custom') {
         $settings['redirect_register_custom_uri'] = '';
       }
       else {
-        if (empty ($settings['redirect_register_custom_uri'])) {
+        if (empty($settings['redirect_register_custom_uri'])) {
           $settings['redirect_register_path'] = 'home';
         }
       }
