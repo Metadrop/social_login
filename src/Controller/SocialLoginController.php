@@ -96,7 +96,7 @@ class SocialLoginController extends ControllerBase {
 
         // User message.
         if (isset($message)) {
-          $this->messenger()->addMessage($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings', 'error'));
+          $this->messenger()->addError($this->t('OneAll Social Login is not setup correctly, please request the administrator to verify the API Settings'));
         }
         // Add log.
         \Drupal::logger('social_login')->error('Unable to use Social Login, the API Settings are not filled out correctly.');
@@ -189,9 +189,9 @@ class SocialLoginController extends ControllerBase {
 
                     // The existing token does not match the current user!
                     if ($user_for_token->id() != $user->id()) {
-                      $this->messenger()->addMessage($this->t('This @social_network account is already linked to another user.', [
+                      $this->messenger()->addError($this->t('This @social_network account is already linked to another user.', [
                         '@social_network' => $provider_name,
-                      ]), 'error');
+                      ]));
                     }
                     // The existing token matches the current user!
                     else {
@@ -205,9 +205,9 @@ class SocialLoginController extends ControllerBase {
                           $event_dispatcher->dispatch(SocialLoginUserLinkedEvent::EVENT_NAME, $event);
 
                           // Add user message.
-                          $this->messenger()->addMessage($this->t('The @social_network account has been linked to your account.', [
+                          $this->messenger()->addStatus($this->t('The @social_network account has been linked to your account.', [
                             '@social_network' => $provider_name,
-                          ]), 'status');
+                          ]));
 
                           // Add log.
                           \Drupal::logger('social_login')->notice('@name has linked his @provider account, identity @identity_token.', [
@@ -223,7 +223,7 @@ class SocialLoginController extends ControllerBase {
                         social_login_unmap_identity_token($identity_token);
 
                         // Add user message.
-                        $this->messenger()->addMessage($this->t('The social network account has been unlinked from your account.'), 'status');
+                        $this->messenger()->addStatus($this->t('The social network account has been unlinked from your account.'));
 
                         // Add log.
                         \Drupal::logger('social_login')->notice('@name has unlinked a social network account, identity @identity_token.', [

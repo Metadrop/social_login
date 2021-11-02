@@ -454,7 +454,7 @@ class SocialLoginAdminSettings extends ConfigFormBase {
 
       $this->configFactory->getEditable('social_login.settings')->set($setting, $value)->save();
     }
-    $this->messenger()->addMessage($this->t('Settings saved successfully'), 'status social_login');
+    $this->messenger()->addStatus($this->t('Settings saved successfully'), 'status social_login');
 
     // Clear cache.
     \Drupal::cache()->deleteAll();
